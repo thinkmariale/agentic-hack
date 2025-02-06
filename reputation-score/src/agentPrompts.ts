@@ -68,8 +68,8 @@ You must return a JSON object with the following structure:
 Model Input Format:
 {
   "username": "@user123",
-  "content_creator": "@artist456",
-  "post_text": "Just finished creating this piece! What do you think?"
+  "contentCreator": "@artist456",
+  "postText": "Just finished creating this piece! What do you think?"
 }
 
 Model Output Format:
