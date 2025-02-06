@@ -1,4 +1,4 @@
-import { CopyrightInfringementRecord, OffenseContext } from "./types/copyrightInfringement"
+import { ReportedPost, OffenseContext } from "./types/copyrightInfringement"
 
 enum OffenseScoreWeights {
     frequencyWeight = 0.5,          // Each additional offense increases score
@@ -38,7 +38,7 @@ const getPostContextSubScore = (offenseType: OffenseContext) => {
     * Simplified formula:
     * TimeDecayScale = TimeDecayFactor * timeSinceLastOffense;
  */
-const getUserTimeDecaySubScore = (offenses: CopyrightInfringementRecord[]) => {
+const getUserTimeDecaySubScore = (offenses: ReportedPost[]) => {
     if (offenses.length === 0) return 0;
     const now = new Date();
     const latestOffense = offenses.reduce((acc, offense) => {
@@ -56,7 +56,7 @@ const getUserTimeDecaySubScore = (offenses: CopyrightInfringementRecord[]) => {
     * averagePostSeverity = sum(severityScore) / offenseCount;
     * postSeveritySubScore = averagePostSeverity * contentSeverityWeight;
  */
-const getUserPostSeveritySubScore = (offenses: CopyrightInfringementRecord[]) => {
+const getUserPostSeveritySubScore = (offenses: ReportedPost[]) => {
     if (offenses.length === 0) return 0;
     const averagePostSeverity = offenses.reduce((acc, offense) => acc + offense.severityScore!, 0) / offenses.length;
     return averagePostSeverity * OffenseScoreWeights.contentSeverityWeight;
@@ -69,7 +69,7 @@ const getUserPostSeveritySubScore = (offenses: CopyrightInfringementRecord[]) =>
     * averageContextSubScore = sum(contextScore) / offenseCount;
     * contextSubScore = averageContextSubScore * contextSeverityWeight;
  */
-const getUserDerivedContextSubScore = (offenses: CopyrightInfringementRecord[]) => {
+const getUserDerivedContextSubScore = (offenses: ReportedPost[]) => {
     if (offenses.length === 0) return 0;
     const averageContextSubScore = offenses.reduce((acc, offense) => acc + getPostContextSubScore(offense.offenseContext!), 0) / offenses.length;
     return averageContextSubScore * OffenseScoreWeights.derivedContextWeight;
@@ -81,12 +81,12 @@ const getUserDerivedContextSubScore = (offenses: CopyrightInfringementRecord[]) 
     * Simplified formula:
     * offenseCountSubScore = offenseCount * frequencyWeight;
  */
-const getUserOffenseCountSubScore = (offenses: CopyrightInfringementRecord[]) => {
+const getUserOffenseCountSubScore = (offenses: ReportedPost[]) => {
     return offenses.length * OffenseScoreWeights.frequencyWeight;
 }
 
 
-export const generateUserOverallReputationScore = (offenses: CopyrightInfringementRecord[]) => {
+export const generateUserOverallReputationScore = (offenses: ReportedPost[]) => {
     offenses = offenses.filter(offense => offense.severityScore !== undefined);
 
     const offenseCountSubScore = getUserOffenseCountSubScore(offenses);
