@@ -71,7 +71,7 @@ const getUserPostSeveritySubScore = (offenses: ReportedPost[]) => {
  */
 const getUserDerivedContextSubScore = (offenses: ReportedPost[]) => {
     if (offenses.length === 0) return 0;
-    const averageContextSubScore = offenses.reduce((acc, offense) => acc + getPostContextSubScore(offense.offenseContext!), 0) / offenses.length;
+    const averageContextSubScore = offenses.reduce((acc, offense) => acc + getPostContextSubScore(offense.derivedContext!), 0) / offenses.length;
     return averageContextSubScore * OffenseScoreWeights.derivedContextWeight;
 }
 
