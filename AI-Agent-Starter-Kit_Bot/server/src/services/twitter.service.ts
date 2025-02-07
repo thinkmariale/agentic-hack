@@ -2,7 +2,7 @@ import { BaseService } from "./base.service.js";
 import { Profile, Scraper, SearchMode, Tweet } from "agent-twitter-client";
 import fs from "fs/promises";
 import { join, dirname } from "path";
-import { pollVerificationStatus, verifyContent } from "../utils.js";
+import { pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
 import { getCollablandApiUrl } from "../utils.js";
 import { IAccountInfo } from "../types.js";
 import axios, { AxiosError } from "axios";
@@ -15,14 +15,6 @@ const twitterCookiesPath = join(
   "..",
   "twitter-cookies.json"
 );
-
-interface VerificationResult {
-  status: boolean;
-  message: string;
-  data: {
-    verId: string;
-  };
-}
 
 export class TwitterService extends BaseService {
   private static instance: TwitterService;

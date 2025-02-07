@@ -93,7 +93,12 @@ export const verifyContent = async (
   wallet: string = "na"
 ) => {
   try {
-    const blob = await dataURItoBlob(contentURL);
+    let blob = await dataURItoBlob(contentURL);
+
+    if(blob.type === 'application/octet-stream') {
+      const fileExtension = contentURL.split('.').pop() || '';
+      blob = new Blob([await blob.arrayBuffer()], { type: 'image/'+fileExtension });
+    }
     const contentType = blob.type;
     const format = getContentFormat(contentType);
 
@@ -164,3 +169,11 @@ export const queryVerificationStatus= async(verId: string): Promise<any> => {
   }
   throw new Error('Verification timed out');
  }
+
+export interface VerificationResult {
+  status: boolean;
+  message: string;
+  data: {
+    verId: string;
+  };
+}

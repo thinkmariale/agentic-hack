@@ -6,7 +6,10 @@ import {
   getCollablandApiUrl,
   getTokenMetadataPath,
   MintResponse,
+  pollVerificationStatus,
   TokenMetadata,
+  VerificationResult,
+  verifyContent,
 } from "../utils.js";
 import fs from "fs";
 import axios, { AxiosResponse, isAxiosError } from "axios";
@@ -40,14 +43,14 @@ export class TelegramService extends BaseService {
 
   private constructor(webhookUrl?: string) {
     super();
-    // if (!process.env.TELEGRAM_BOT_TOKEN) {
-    //   throw new Error("TELEGRAM_BOT_TOKEN is required");
-    // }
-    // if (webhookUrl != null) {
-    //   this.webhookUrl = `${webhookUrl}/telegram/webhook`;
-    // }
-    // this.bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
-    // this.elizaService = ElizaService.getInstance(this.bot);
+    if (!process.env.TELEGRAM_BOT_TOKEN) {
+      throw new Error("TELEGRAM_BOT_TOKEN is required");
+    }
+    if (webhookUrl != null) {
+      this.webhookUrl = `${webhookUrl}/telegram/webhook`;
+    }
+    this.bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
+    this.elizaService = ElizaService.getInstance(this.bot);
     console.log(webhookUrl);
   }
 
@@ -86,11 +89,12 @@ export class TelegramService extends BaseService {
       this.bot.api.setMyCommands([
         {
           command: "start",
-          description: "Add any hello world functionality to your bot",
+          description: "Say hello and we will greet you back",
         },
-        { command: "mint", description: "Mint a token on Wow.xyz" },
-        { command: "eliza", description: "Talk to the AI agent" },
-        { command: "lit", description: "Execute a Lit action" },
+        // { command: "mint", description: "Mint a token on Wow.xyz" },
+        // { command: "eliza", description: "Talk to the AI agent" },
+        // { command: "lit", description: "Execute a Lit action" },
+        { command: "verify", description: "Execute content verification actions" },
       ]);
       // all command handlers can be registered here
       this.bot.command("start", (ctx) => ctx.reply("Hello!"));
@@ -365,6 +369,74 @@ You can view the token page below (it takes a few minutes to be visible)`,
                 parse_mode: "HTML",
               }
             );
+          }
+        }
+      });
+      // this.bot.command("verify", async (ctx) => {
+      //   try {
+      //     if (!ctx.message?.photo) {
+      //       await ctx.reply("Please send an image with the /verify command");
+      //       return;
+      //     }
+       
+      //     const photo = ctx.message.photo[ctx.message.photo.length - 1];
+      //     const file = await ctx.api.getFile(photo.file_id);
+      //     const imageUrl = `https://t.me/MentaportBot/${file.file_path}`;
+
+      //     console.log('processing verify for file: ', imageUrl);
+       
+      //     await ctx.reply("Verifying image...");
+       
+      //     const verifyResult = await verifyContent(
+      //       imageUrl,
+      //       `telegram_${ctx.message.message_id}`,
+      //       `telegram_${ctx.from.id}`
+      //     ) as VerificationResult;
+      //     await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
+      //       parse_mode: "HTML"
+      //     });
+      //     const status = await pollVerificationStatus(verifyResult.data.verId);
+      //     await ctx.reply(`Verification result: ${JSON.stringify(status)}`, {
+      //       parse_mode: "HTML"
+      //     });
+       
+      //   } catch (error) {
+      //     console.error("Verification error:", error);
+      //     await ctx.reply(`Error verifying image: ${error.message}`);
+      //   }
+      //  });
+
+       this.bot.on("message", async (ctx) => {
+        const message = ctx.message;
+        console.log(message)
+        if (message.caption?.startsWith("/verify") || message.text?.startsWith("/verify")) {
+          if (!message.photo) {
+            await ctx.reply("Please send an image with the /verify command");
+            return;
+          }
+      
+        // Get highest resolution photo
+        const photo = message.photo[message.photo.length - 1];
+        const file = await ctx.api.getFile(photo.file_id);
+        
+        // Download the file
+        const response = await fetch(`https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`);
+          console.log('response: ', response)
+          await ctx.reply("Verifying image...");
+      
+          try {
+            const verifyResult = await verifyContent(
+              response.url,
+              `telegram_${message.message_id}`,
+              'na' //`telegram_${ctx.from.id}`
+            ) as VerificationResult;
+            await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
+              parse_mode: "HTML"
+            });
+            const status = await pollVerificationStatus(verifyResult.data.verId);
+            await ctx.reply(`Verification result: ${JSON.stringify(status)}`);
+          } catch (error) {
+            await ctx.reply(`Error: ${error.message}`);
           }
         }
       });
