@@ -119,7 +119,7 @@ export class TwitterService extends BaseService {
           // if it has a valid certificate, send it to create a post entry in the graph
           if (stringifiedResult.includes("valid")) {
             console.log("add reported post to graph");
-            await this.addReportedPostToGraph(tweet);
+            // await this.addReportedPostToGraph(tweet);
           }
 
           console.log("send tweet");
@@ -157,6 +157,7 @@ export class TwitterService extends BaseService {
       return data;
     } catch (error: unknown) {
       console.error("[TwitterService] Error adding reported post to graph:", error);
+      return null;
     }
   }
 

@@ -64,34 +64,45 @@ router.post("/add", async (_req: Request, res: Response) => {
   const tweet = _req.body as Tweet;
   // get post text, url, username, and user id from the tweet object
   const { text, permanentUrl, userId, username, timestamp } = tweet;
+  // now in ms
+  const currTime = new Date().getTime();  
+  const signer = getSigner();
+  const contract = ReputationAgent__factory.connect(signer);
 
+  // find or create the user in the graph
   let user;
   try {
-    // try to find user in graph
-    // set user if found,
-    // else create user
+    const existingUser = await contract.getUser(username, "twitter");
+    if (existingUser) {
+      user = existingUser;
+    } else {
+      user = {
+        userId: userId!,
+        platform: "twitter",
+        username: username!,
+        offenseCount: 0,
+        postCount: 0,
+        firstOffenseTimestamp: undefined,
+        lastOffenseTimestamp: undefined,
+        reputationScore: undefined
+      };
+    }
   } catch (error) {
     console.error("Error getting user from graph", error);
   }
 
+  // find or create the post in the graph
   try {
-    // TODO: Ron here to add to subgraph
-    const curTime = new Date().setFullYear(2022, 1, 1);
-    const newReportedUser: CopyrightInfringementUser = {
-      userId: userId!,
-      platform: "twitter",
-      username: username!,
-      offenseCount: 0,
-      postCount: 0,
-      firstOffenseTimestamp: undefined,
-      lastOffenseTimestamp: undefined,
-      reputationScore: undefined,
-    };
-
-    const contentHash = ethers.sha256((text || "") + permanentUrl + username);
+    const contentHash = ethers.sha256((text || "") + permanentUrl + username + "twitter");
     const recordId = ethers.uuidV4(contentHash);
+
     // check to see if the post has already been reported
-    // if it has, we do not need to create a new record,, simply return the exising reputation score
+    // if it has, we do not need to create a new record, simply return the exising reputation score
+    const existingPost = await contract.getPost(user.userId, contentHash);
+    if (existingPost && existingPost.severityScore && user.reputationScore) {
+      res.json({ message: "Post already reported", reputationScore: user.reputationScore, post: existingPost });
+      return;
+    }
 
     const reportedPost: ReportedPost = {
       recordId: recordId,
@@ -99,20 +110,18 @@ router.post("/add", async (_req: Request, res: Response) => {
       contentHash: contentHash,
       postText: text,
       postUrl: permanentUrl,
-      timestamp: timestamp || curTime,
-      reportedTimestamp: curTime,
+      timestamp: timestamp || currTime,
+      reportedTimestamp: currTime,
       severityScore: undefined,
       derivedContext: undefined,
       derivedContextExplanation: undefined
     }
 
-    console.log("HERE", curTime)
-    const signer = getSigner();
-    const contract = ReputationAgent__factory.connect(signer);
+    console.log("HERE", currTime)
     console.log("contract 1", contract.interface.fragments)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const resultInfr = await contract.AddInfringement(newReportedUser, reportedPost, true);
+    const resultInfr = await contract.AddInfringement(user, reportedPost, true);
     const result = await contract.GetReputationScore("0x5fbdb2315678afecb367f032d93f642f64180aa3");
     console.log(resultInfr)
     console.log('result',result);
