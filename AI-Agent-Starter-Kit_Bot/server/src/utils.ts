@@ -93,14 +93,19 @@ export const verifyContent = async (
   wallet: string = "na"
 ) => {
   try {
-    const blob = await dataURItoBlob(contentURL);
+    let blob = await dataURItoBlob(contentURL);
+
+    if(blob.type === 'application/octet-stream') {
+      const fileExtension = contentURL.split('.').pop() || '';
+      blob = new Blob([await blob.arrayBuffer()], { type: 'image/'+fileExtension });
+    }
     const contentType = blob.type;
     const format = getContentFormat(contentType);
 
     const formData = new FormData();
     formData.append("content", blob, `verify.${format}`);
 
-    const verifyUrl = `${process.env.VERIFY_API_URL}?scannerId=mentaportbot&contentFormat=${format}&url=${url}&wallet=${wallet}`;
+    const verifyUrl = `${process.env.VERIFY_API_URL}verify/scanners?scannerId=mentaportbot&contentFormat=${format}&url=${url}&wallet=${wallet}`;
     console.log("sending verify call: ", verifyUrl);
     const headers = new Headers({
       "x-api-key": process.env.VERIFY_API_KEY as string,
@@ -135,3 +140,40 @@ export const getContentFormat = (contentType: string): string => {
 
   throw new Error(`Unsupported content type: ${contentType}`);
 };
+
+export const queryVerificationStatus= async(verId: string): Promise<any> => {
+  try {
+    const response = await fetch(`${process.env.VERIFY_API_URL}verify/status?verId=${verId}`, {
+      headers: {
+        'x-api-key': process.env.VERIFY_API_KEY!
+      }
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error querying verification status:', error);
+    throw error;
+  }
+ }
+ 
+ export const pollVerificationStatus = async(verId: string, maxAttempts = 10, interval = 3000): Promise<any> => {
+  let attempts = 0;
+  
+  while (attempts < maxAttempts) {
+    const status = await queryVerificationStatus(verId);
+    console.log('veriy verId status call: ', status)
+    if (status.data?.status?.status !== 'Processing' || status.message?.includes('Validation Error')) {
+      return status.data?.status?.status ? status.data?.status?.status : "No Valid Certificate";
+    }
+    await new Promise(resolve => setTimeout(resolve, interval));
+    attempts++;
+  }
+  throw new Error('Verification timed out');
+ }
+
+export interface VerificationResult {
+  status: boolean;
+  message: string;
+  data: {
+    verId: string;
+  };
+}
