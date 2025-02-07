@@ -1,0 +1,111 @@
+/* ChatBox.module.css */
+.chatContainer {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  width: 350px;
+  border-radius: 20px;
+  border: 1px solid #aaa;
+  background: #ddd;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.chatBox {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scrollbar-width: thin;
+}
+
+.message {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 75%;
+}
+
+/* Instead of using ".message.user" in CSS Modules, create a separate class */
+.userMessage {
+  flex-direction: row-reverse;
+  align-self: flex-end;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #ddd;
+  border-radius: 50%;
+}
+
+.bubble {
+  max-width: 400px;
+  word-wrap: break-word;
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.userBubble {
+  background-color: #007aff;
+  color: white;
+  align-self: flex-end;
+}
+
+.computerBubble {
+  background-color: #e5e5ea;
+  color: black;
+  align-self: flex-start;
+}
+
+.timestamp {
+  font-size: 10px;
+  opacity: 0.6;
+  position: absolute;
+  bottom: -15px;
+  right: 10px;
+}
+
+.messageImage {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 5px;
+}
+
+.inputBox {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background: white;
+  border-top: 1px solid #ddd;
+}
+
+.textInput {
+  flex: 1;
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  outline: none;
+  margin-right: 8px;
+}
+
+.fileInput {
+  margin-right: 8px;
+}
+
+.sendButton {
+  padding: 6px 12px;
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+}
