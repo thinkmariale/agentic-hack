@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import sharp from 'sharp';
 
 import { resolve } from "path";
 const __dirname = new URL(".", import.meta.url).pathname;
@@ -170,6 +171,57 @@ export const queryVerificationStatus= async(verId: string): Promise<any> => {
   throw new Error('Verification timed out');
  }
 
+ export const createCertificate = async (
+  contentURL: string,
+  params: CertificateParams
+ ) => {
+  try {
+    let blob = await dataURItoBlob(contentURL);
+
+    const fileExtension = contentURL.split('.').pop() || '';
+    if(blob.type === 'application/octet-stream') {
+      const bytes = await blob.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      blob = new Blob([buffer], { type: 'image/'+fileExtension });
+    }
+    let imageBuffer = await resizeImage(blob);
+    blob = new Blob([imageBuffer], { type: 'image/'+fileExtension });
+
+    const formData = new FormData();
+    formData.append("content", blob, `certificate.${params.contentFormat}`);
+ 
+    const queryString = Object.entries(params)
+      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+      .join('&');
+ 
+    const certUrl = `${process.env.VERIFY_API_URL}certificates/create?${queryString}`;
+
+    const response = await fetch(certUrl, {
+      method: "POST",
+      headers: {
+        "x-api-key": process.env.CERT_API_KEY!
+      },
+      body: formData
+    });
+ 
+    return await response.json();
+  } catch (error) {
+    console.error("[MentaportService] Certificate creation error:", error);
+    throw error;
+  }
+ };
+
+ const resizeImage = async (blob: Blob): Promise<Buffer> => {
+  const buffer = Buffer.from(await blob.arrayBuffer());
+  return await sharp(buffer)
+    .resize(1920, 1920, {
+      fit: 'contain',
+      background: { r: 255, g: 255, b: 255, alpha: 1 }
+    })
+    .jpeg({ quality: 90 })
+    .toBuffer();
+ };
+
 export interface VerificationResult {
   status: boolean;
   message: string;
@@ -177,3 +229,15 @@ export interface VerificationResult {
     verId: string;
   };
 }
+
+export interface CertificateParams {
+  projectId: string,
+  contentFormat: string,
+  name: string;
+  username: string;
+  description: string;
+  aiTrainingMiningInfo: string;
+  usingAI: boolean;
+  aiSoftware?: string;
+  aiModel?: string;
+ }

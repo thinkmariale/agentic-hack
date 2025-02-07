@@ -21,7 +21,7 @@ export class TwitterService extends BaseService {
   private scraper: Scraper | null = null;
   private isConnected: boolean = false;
   public me: Profile | undefined = undefined;
-  // private latestTweetId: string | null = null;
+  private latestTweetId: string | null = null;
   public pollInterval: NodeJS.Timeout | null = null;
 
   private constructor() {
@@ -100,6 +100,9 @@ export class TwitterService extends BaseService {
         }
       }
       if (tweet.text?.toLowerCase().includes("verify")) {
+        if (this.latestTweetId && tweet.id && tweet.id <= this.latestTweetId) continue;
+        this.latestTweetId = tweet.id as string;
+
         if (tweet.inReplyToStatusId) {
           tweet = (await this.getTweetById(tweet.inReplyToStatusId)) as Tweet;
         }
@@ -139,7 +142,7 @@ export class TwitterService extends BaseService {
     }
   }
 
-  private startPolling(intervalMs: number = 15000) {
+  private startPolling(intervalMs: number = 30000) {
     this.pollInterval = setInterval(
       () => this.pollMentionListener(),
       intervalMs
