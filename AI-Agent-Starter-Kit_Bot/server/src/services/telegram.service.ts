@@ -3,6 +3,8 @@ import { BaseService } from "./base.service.js";
 import { ElizaService } from "./eliza.service.js";
 import {
   AnyType,
+  CertificateParams,
+  createCertificate,
   getCollablandApiUrl,
   getTokenMetadataPath,
   MintResponse,
@@ -91,10 +93,10 @@ export class TelegramService extends BaseService {
           command: "start",
           description: "Say hello and we will greet you back",
         },
-        // { command: "mint", description: "Mint a token on Wow.xyz" },
-        // { command: "eliza", description: "Talk to the AI agent" },
+        { command: "mint", description: "Mint a certficate of authenticity for your content, powered by Mentaport Inc." },
+        { command: "eliza", description: "Talk to your AI assitant for content authenticity" },
         // { command: "lit", description: "Execute a Lit action" },
-        { command: "verify", description: "Execute content verification actions" },
+        { command: "verify", description: "Execute content verification actions, I am here to help you fight misattribution" },
       ]);
       // all command handlers can be registered here
       this.bot.command("start", (ctx) => ctx.reply("Hello!"));
@@ -372,39 +374,6 @@ You can view the token page below (it takes a few minutes to be visible)`,
           }
         }
       });
-      // this.bot.command("verify", async (ctx) => {
-      //   try {
-      //     if (!ctx.message?.photo) {
-      //       await ctx.reply("Please send an image with the /verify command");
-      //       return;
-      //     }
-       
-      //     const photo = ctx.message.photo[ctx.message.photo.length - 1];
-      //     const file = await ctx.api.getFile(photo.file_id);
-      //     const imageUrl = `https://t.me/MentaportBot/${file.file_path}`;
-
-      //     console.log('processing verify for file: ', imageUrl);
-       
-      //     await ctx.reply("Verifying image...");
-       
-      //     const verifyResult = await verifyContent(
-      //       imageUrl,
-      //       `telegram_${ctx.message.message_id}`,
-      //       `telegram_${ctx.from.id}`
-      //     ) as VerificationResult;
-      //     await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
-      //       parse_mode: "HTML"
-      //     });
-      //     const status = await pollVerificationStatus(verifyResult.data.verId);
-      //     await ctx.reply(`Verification result: ${JSON.stringify(status)}`, {
-      //       parse_mode: "HTML"
-      //     });
-       
-      //   } catch (error) {
-      //     console.error("Verification error:", error);
-      //     await ctx.reply(`Error verifying image: ${error.message}`);
-      //   }
-      //  });
 
        this.bot.on("message", async (ctx) => {
         const message = ctx.message;
@@ -439,12 +408,119 @@ You can view the token page below (it takes a few minutes to be visible)`,
             await ctx.reply(`Error: ${error.message}`);
           }
         }
+
+        if (message.caption?.startsWith("/mint") || message.text?.startsWith("/mint")) {
+          if (!message.photo) {
+            await ctx.reply("Please send an image with the /mint command");
+            return;
+          }
+       
+          try {
+            // Get certificate params from user
+            // const params = await this.getCertificateParams(ctx);
+
+            // Process image
+            const photo = message.photo[message.photo.length - 1];
+            const file = await ctx.api.getFile(photo.file_id);
+            const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
+            
+            const fileExtension = fileUrl.split('.').pop() || '';
+
+            const params: CertificateParams = {
+              projectId: process.env.PROJECT_ID!,
+              contentFormat: fileExtension,
+              name: 'Test',
+              username: message.from.username as string,
+              description: 'Test 1',
+              aiTrainingMiningInfo: 'not_allowed',
+              usingAI: false
+            };
+
+            // Create certificate
+            const certificate = await createCertificate(fileUrl, params) as any;
+
+            console.log('create certificate response ..')
+       
+            console.log(certificate)
+            await ctx.reply(`Thanks for using my service, your certifctae minting is in progress ...`);
+            // Poll status
+            let status;
+            do {
+              const statusResponse = await fetch(`${process.env.VERIFY_API_URL}/certificates/status?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`, {
+                headers: { 'x-api-key': process.env.CERT_API_KEY! }
+              });
+              status = await statusResponse.json() as any;
+              console.log('check certificate upload status ..', status)
+
+              await new Promise(r => setTimeout(r, 3000));
+            } while (status.data.status.status === 'Processing' || status.data.status.status === 'Initiating');
+       
+            // Approve certificate
+            if (status.data.status.status === 'Pending') {
+              await ctx.reply(`We are one step away from finalizing your certifcate minting, stay connected ...`);
+
+              const approveResponse = await fetch(`${process.env.VERIFY_API_URL}/certificates/approve?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}&approved=true`, {
+                method: 'POST',
+                headers: { 'x-api-key': process.env.CERT_API_KEY! }
+              }) as any;
+              const approved = await approveResponse.json();
+              console.log('check certificate approve status ..', approved)
+              await ctx.reply(`Congratulations! Certificate created and approved. Your certificate ID: ${approved.data.certId}. Find your certificate on-chain minted on Base chain in transaction: ${approved.data.txnHash}, and token Id (${approved.data.tokenId}) on this contract address (${approved.data.contractAddress}). If you want to check the certificate NFT metadata check the IPFS link here ${approved.data.metadataUri}`);
+            } else {
+              await ctx.reply(`Certificate creation failed: ${status.status}. `);
+            }
+       
+          } catch (error) {
+            console.error('error in mint certificate: ',error);
+            await ctx.reply(`Error: ${error.message}`);
+          }
+        }
+
       });
     } catch (error) {
       console.error("Failed to start Telegram bot:", error);
       throw error;
     }
   }
+
+  private async awaitResponse(ctx: any): Promise<string> {
+    console.log(ctx)
+    return new Promise((resolve) => {
+      const listener = (ctx: any) => {
+        // this.bot.off("message", listener);
+        resolve(ctx.message.text);
+      };
+      this.bot.on("message", listener);
+    });
+   }
+
+
+public async getCertificateParams(ctx: any): Promise<CertificateParams> {
+  const params: Partial<CertificateParams> = {};
+  
+  await ctx.reply("Please enter certificate name:");
+  params.name = await this.awaitResponse(ctx);
+ 
+  await ctx.reply("Please enter description:");
+  params.description = await this.awaitResponse(ctx);
+ 
+  await ctx.reply("AI training/mining info (allow/not_allowed):");
+  params.aiTrainingMiningInfo = await this.awaitResponse(ctx);
+ 
+  await ctx.reply("Was AI used to create this image? (yes/no):");
+  const aiResponse = await this.awaitResponse(ctx);
+  params.usingAI = aiResponse.toLowerCase() === 'yes';
+ 
+  if (!params.usingAI) {
+    await ctx.reply("Enter AI software used (or 'none'):");
+    params.aiSoftware = await this.awaitResponse(ctx);
+ 
+    await ctx.reply("Enter AI model used (or 'none'):");
+    params.aiModel = await this.awaitResponse(ctx);
+  }
+ 
+  return params as CertificateParams;
+ }
 
   public getBotInfo() {
     return this.bot.api.getMe();
