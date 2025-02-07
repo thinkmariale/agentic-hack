@@ -2,3 +2,4 @@
 */.env
 *.gitconfig
 *.vscode/
+/node_modules
