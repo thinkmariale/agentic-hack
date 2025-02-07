@@ -19,6 +19,46 @@ const getSigner = () => {
   return wallet.connect(new ethers.JsonRpcProvider(url));
 }
 
+router.get("/getUser", async (_req: Request, res: Response) => {
+  const username = _req.query.username as string;
+  const platform = _req.query.platform as string;
+  try {
+    // TODO Mariale here to implement this endpoint
+  } catch (error) {
+    console.error("Error getting user from graph", error);
+    res.status(500).json({ error: "Error getting user from graph" });
+  }
+});
+
+router.get("/getPost", async (_req: Request, res: Response) => {
+  const userId = _req.query.userId as string;
+  const contentHash = _req.query.contentHash as string;
+  try {
+    // TODO Mariale here to implement this endpoint
+  } catch (error) {
+    console.error("Error getting post from graph", error);
+    res.status(500).json({ error: "Error getting post from graph" });
+  }
+});
+
+// TODO: Mariale here to implement this endpoint
+router.post("/updateUser", async (_req: Request, res: Response) => {
+  const userId = _req.body.userId as string;
+  const reputationScore = _req.body.reputationScore as number;
+  const offenseCount = _req.body.offenseCount as number;
+  const postCount = _req.body.postCount as number;
+  const firstOffenseTimestamp = _req.body.firstOffenseTimestamp as string;
+  const lastOffenseTimestamp = _req.body.lastOffenseTimestamp as string;
+});
+
+// TODO: Mariale here to implement this endpoint
+router.post("/updatePost", async (_req: Request, res: Response) => {
+  const recordId = _req.body.recordId as string;
+  const severityScore = _req.body.severityScore as number;
+  const derivedContext = _req.body.derivedContext as string;
+  const derivedContextExplanation = _req.body.derivedContextExplanation as string;
+});
+
 router.post("/add", async (_req: Request, res: Response) => {
   // get the tweet object from the body
   const tweet = _req.body as Tweet;
@@ -37,7 +77,7 @@ router.post("/add", async (_req: Request, res: Response) => {
   try {
     // TODO: Ron here to add to subgraph
     const curTime = new Date().setFullYear(2022, 1, 1);
-    const newReportedUser: CopyrightInfringementUser ={
+    const newReportedUser: CopyrightInfringementUser = {
       userId: userId!,
       platform: "twitter",
       username: username!,
