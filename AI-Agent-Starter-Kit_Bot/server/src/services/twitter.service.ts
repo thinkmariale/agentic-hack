@@ -115,11 +115,17 @@ export class TwitterService extends BaseService {
           );
 
           console.log("verify call result: ", result);
+          const stringifiedResult = JSON.stringify(result);
+          // if it has a valid certificate, send it to create a post entry in the graph
+          if (stringifiedResult.includes("valid")) {
+            console.log("add reported post to graph");
+            await this.addReportedPostToGraph(tweet);
+          }
 
           console.log("send tweet");
           try {
             const res = await this.scraper.sendTweet(
-              `Verification result: ${JSON.stringify(result)}`,
+              `Verification result: ${stringifiedResult}`,
               tweet.id
             );
             console.log(res);
@@ -128,6 +134,29 @@ export class TwitterService extends BaseService {
           }
         }
       }
+    }
+  }
+
+  private async addReportedPostToGraph(tweet: Tweet) {
+    try {
+      const response = await fetch(`/api/reputation/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(tweet),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(data);
+      console.log("Successfully added reported post to graph");
+      return data;
+    } catch (error: unknown) {
+      console.error("[TwitterService] Error adding reported post to graph:", error);
     }
   }
 

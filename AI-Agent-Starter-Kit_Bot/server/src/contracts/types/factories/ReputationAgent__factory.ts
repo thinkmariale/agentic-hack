@@ -90,6 +90,12 @@ const _abi =
             },
             {
               indexed: false,
+              internalType: "uint256",
+              name: "reportedTimestamp",
+              type: "uint256",
+            },
+            {
+              indexed: false,
               internalType: "string",
               name: "derivedContext",
               type: "string",
@@ -189,6 +195,11 @@ const _abi =
                 {
                   internalType: "uint256",
                   name: "timestamp",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "reportedTimestamp",
                   type: "uint256",
                 },
                 {
