@@ -1,0 +1,6 @@
+query GetReputation {
+  reputations(first: 25, orderBy: lastOffenseTimestamp, orderDirection: desc) {
+    userId
+    offenseCount
+  }
+}
