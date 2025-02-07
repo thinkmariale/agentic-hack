@@ -36,16 +36,13 @@ export default function HelloWorld() {
     <div className="flex flex-col items-center w-full space-y-6 p-4">
       <Card className="w-full max-w-3xl">
         <CardHeader>
-          <CardTitle>Hello AI Agent Starter Kit</CardTitle>
+          <CardTitle>Welcome to Infringer Defender</CardTitle>
           <CardDescription>
-            Get started on the client by editing{" "}
-            <span className="font-bold text-blue-500">
-              /client/app/_components/HelloWorld.tsx
-            </span>
+           Where your IP is controlled and your reputation is protected
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert variant={isConfigured ? "default" : "destructive"}>
+          {/* <Alert variant={isConfigured ? "default" : "destructive"}>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>API Configuration Status</AlertTitle>
             <AlertDescription>
@@ -53,7 +50,7 @@ export default function HelloWorld() {
                 ? "API URL is properly configured"
                 : "API URL is not configured"}
             </AlertDescription>
-          </Alert>
+          </Alert> */}
 
           {isConfigured && (
             <>
@@ -65,7 +62,7 @@ export default function HelloWorld() {
                 </Alert>
               ) : (
                 <>
-                  <Alert>
+                  {/* <Alert>
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Server Configuration</AlertTitle>
                     <AlertDescription>
@@ -74,7 +71,7 @@ export default function HelloWorld() {
                         /server/src/routes/hello.ts
                       </code>
                     </AlertDescription>
-                  </Alert>
+                  </Alert> */}
 
                   <Card>
                     <CardHeader>

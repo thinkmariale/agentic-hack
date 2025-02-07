@@ -2,5 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { WowXYZERC20 } from "./WowXYZERC20.js";
+export type { CopyrightInfringementUser, ReportedPost } from "./ReputationAgent.js";
+
 export * as factories from "./factories/index.js";
 export { WowXYZERC20__factory } from "./factories/WowXYZERC20__factory.js";
+export { ReputationAgent__factory } from "./factories/ReputationAgent__factory.js";

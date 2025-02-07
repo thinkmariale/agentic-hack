@@ -10,6 +10,8 @@ import { NgrokService } from "./services/ngrok.service.js";
 import { IService } from "./services/base.service.js";
 import twitterRouter from "./routes/twitter.js";
 import discordRouter from "./routes/discord.js";
+import subgraphRouter from "./routes/subgraph.js";
+
 import cookieParser from "cookie-parser";
 import githubRouter from "./routes/github.js";
 import { AnyType } from "./utils.js";
@@ -57,8 +59,12 @@ app.use("/auth/discord", discordRouter);
 // Mount GitHub OAuth routes
 app.use("/auth/github", githubRouter);
 
+app.use("/subgraph", subgraphRouter);
+
 // 404 handler
 app.use((_req: Request, _res: Response, _next: NextFunction) => {
+  console.log(_req.method, _req.url);
+  console.log("sss")
   _res.status(404).json({
     message: `Route ${_req.method} ${_req.url} not found`,
   });
@@ -92,8 +98,14 @@ app.listen(port, async () => {
     services.push(ngrokService);
 
     const twitterService = await TwitterService.getInstance();
-    await twitterService?.start();
-    services.push(twitterService);
+    console.log(twitterService);
+    if(twitterService.me != undefined) {
+      await twitterService.start();
+      services.push(twitterService);
+      console.log("Twitter Service started");
+    }
+    // await twitterService?.start();
+    // services.push(twitterService);
 
     const ngrokUrl = ngrokService.getUrl()!;
     console.log("NGROK URL:", ngrokUrl);
@@ -111,6 +123,7 @@ app.listen(port, async () => {
   }
 });
 
+console.log("Server started");
 // Graceful shutdown handler
 async function gracefulShutdown() {
   console.log("Shutting down gracefully...");
