@@ -1,4 +1,4 @@
-export const postContextClassificationPromp = `
+export const postContextClassificationPrompt = `
 Task: Analyze the intent behind a Twitter post to classify whether the user is plagiarizing digital content, misattributing it, or following fair use principles.
 
 Instructions:
