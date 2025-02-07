@@ -10,7 +10,7 @@ import { NgrokService } from "./services/ngrok.service.js";
 import { IService } from "./services/base.service.js";
 import twitterRouter from "./routes/twitter.js";
 import discordRouter from "./routes/discord.js";
-import subgraphRouter from "./routes/subgraph.js";
+import reputationGraphRouter from "./routes/reputationGraph.js";
 
 import cookieParser from "cookie-parser";
 import githubRouter from "./routes/github.js";
@@ -59,7 +59,7 @@ app.use("/auth/discord", discordRouter);
 // Mount GitHub OAuth routes
 app.use("/auth/github", githubRouter);
 
-app.use("/subgraph", subgraphRouter);
+app.use("/reputation", reputationGraphRouter);
 
 // 404 handler
 app.use((_req: Request, _res: Response, _next: NextFunction) => {

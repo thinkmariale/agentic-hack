@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import {  useState } from "react";
 
-export function Subgraph() {
+export function ReputationGraph() {
   const [isLoading, setIsLoading] = useState(false);
 
 
@@ -13,7 +13,7 @@ export function Subgraph() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/subgraph/add`, {
+      const response = await fetch(`/api/reputation/add`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
