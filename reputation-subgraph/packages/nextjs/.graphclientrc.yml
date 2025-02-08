@@ -1,8 +1,8 @@
 # .graphclientrc.yml
 sources:
-  - name: YourContract
+  - name: ReputationAgent
     handler:
       graphql:
-        endpoint: http://localhost:8000/subgraphs/name/scaffold-eth/your-contract
+        endpoint:http://localhost:8000/subgraphs/name/mentaport-hack/reputation-agent
 documents:
   - ./graphql/GetGreetings.gql

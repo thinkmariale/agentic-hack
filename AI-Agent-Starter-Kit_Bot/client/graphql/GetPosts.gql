@@ -1,0 +1,11 @@
+query GetPosts {
+  reportedPostTypes(orderBy: createdAt) {
+    severityScore
+    userId
+    recordId
+    derivedContext
+    derivedContextExplanation
+    postText
+    postUrl
+  }
+}

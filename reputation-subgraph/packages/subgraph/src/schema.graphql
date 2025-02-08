@@ -1,20 +1,27 @@
-type IReputation @entity {
+type ReputationType @entity {
   id: ID!
   userId: Bytes!
-  username: String!
-  platform: String!
+  username: String
+  platform: String
+  postCount: BigInt
+  offenseCount :BigInt
+  firstOffenseTimestamp: BigInt
+  lastOffenseTimestamp: BigInt
   reputationScore: BigInt!
-  isOffense: Boolean
+  createdAt: BigInt!
 }
 
-type IReportedPost @entity {
+type ReportedPostType @entity {
   id: ID!
   recordId: BigInt!
-  userId: Bytes!
+  userId: Bytes
   postText: String
   postUrl: String
   timestamp: BigInt
   derivedContext: String
   derivedContextExplanation: String
   severityScore: BigInt!
+  createdAt: BigInt!
 }
+
+

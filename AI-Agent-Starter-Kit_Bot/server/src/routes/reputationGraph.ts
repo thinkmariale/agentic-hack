@@ -90,7 +90,7 @@ router.post("/add", async (_req: Request, res: Response) => {
     console.log("HERE", currTime)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const resultInfr = await repService.addInfringement(user, post, true);
+    const resultInfr = await repService.addInfringement(user, post);
     const result = await repService.getReputationScore(user.userId);
     console.log(resultInfr)
     console.log('result',result);

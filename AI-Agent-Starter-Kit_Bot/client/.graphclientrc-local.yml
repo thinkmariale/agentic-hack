@@ -1,0 +1,9 @@
+# .graphclientrc.yml
+sources:
+  - name: ReputationAgent
+    handler:
+      graphql:
+        endpoint: http://localhost:8000/subgraphs/name/mentaport-hack/reputation-agent
+documents:
+  - ./graphql/GetReputations.gql
+  - ./graphql/GetPosts.gql

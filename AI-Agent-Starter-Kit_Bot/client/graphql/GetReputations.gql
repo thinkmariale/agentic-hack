@@ -1,0 +1,12 @@
+query GetReputations {
+  reputationTypes(orderBy: createdAt, first: 50) {
+    userId
+    reputationScore
+    postCount
+    platform
+    offenseCount
+    lastOffenseTimestamp
+    firstOffenseTimestamp
+    username
+  }
+}

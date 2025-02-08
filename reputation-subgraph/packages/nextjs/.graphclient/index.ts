@@ -674,17 +674,17 @@ const additionalEnvelopPlugins: MeshPlugin<any>[] = [];
 const yourContractTransforms = [];
 const additionalTypeDefs = [] as any[];
 const yourContractHandler = new GraphqlHandler({
-              name: "YourContract",
-              config: {"endpoint":"http://localhost:8000/subgraphs/name/scaffold-eth/your-contract"},
+              name: "ReputationAgent",
+              config: {"endpoint":"http://localhost:8000/subgraphs/name/mentaport-hack/reputation-agent"},
               baseDir,
               cache,
               pubsub,
-              store: sourcesStore.child("YourContract"),
-              logger: logger.child("YourContract"),
+              store: sourcesStore.child("ReputationAgent"),
+              logger: logger.child("ReputationAgent"),
               importFn,
             });
 sources[0] = {
-          name: 'YourContract',
+          name: 'ReputationAgent',
           handler: yourContractHandler,
           transforms: yourContractTransforms
         }

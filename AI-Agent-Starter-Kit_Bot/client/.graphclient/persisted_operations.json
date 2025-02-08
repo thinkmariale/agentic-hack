@@ -1,0 +1,4 @@
+{
+  "a5606955ecf88c7ebaf9de6066df6397110c0db6a3b13e038b0b22fa00c434d5": "query GetPosts {\n  reportedPostTypes(orderBy: createdAt) {\n    severityScore\n    userId\n    recordId\n    derivedContext\n    derivedContextExplanation\n    postText\n    postUrl\n  }\n}",
+  "94f6c861e14f63cb9d120908bf630b76a4c553c378906d5d36343b2fbb6361a1": "query GetReputations {\n  reputationTypes(orderBy: createdAt, first: 50) {\n    userId\n    reputationScore\n    postCount\n    platform\n    offenseCount\n    lastOffenseTimestamp\n    firstOffenseTimestamp\n    username\n  }\n}"
+}
