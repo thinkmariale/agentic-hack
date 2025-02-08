@@ -22,20 +22,25 @@ interface ChatBoxMessage {
 }
 
 const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
-    const [messages, setMessages] = useState<ChatBoxMessage[]>([
-        {
-            message: "Hey! I'm Monty, your AI agent. How can I help you today?",
-            timestamp: new Date().toLocaleString(),
-            user: 'agent',
-            id: 0,
-        }
-    ]);
+    const [messages, setMessages] = useState<ChatBoxMessage[]>([]);
     const [isTyping, setIsTyping] = useState<boolean>(false);
     const [imageToUpload, setImageToUpload] = useState<File>();
     const [imagePreview, setImagePreview] = useState<string>();
     const [inputMessage, setInputMessage] = useState<string>('');
     const [nextMessageId, setNextMessageId] = useState<number>(0);
     const chatRef = useRef<HTMLDivElement>(null);
+
+    // set initial message
+    useEffect(() => {
+        setMessages([
+            {
+                message: "Hey! I'm Monty, your AI agent. How can I help you today?",
+                timestamp: new Date().toLocaleString(),
+                user: 'agent',
+                id: 0,
+            }
+        ])
+    }, [])
 
     const handleSendMessage = useCallback(async () => {
         if (!inputMessage && !imageToUpload) return;
