@@ -9,11 +9,9 @@ import { NgrokService } from "./services/ngrok.service.js";
 import { TelegramService } from "./services/telegram.service.js";
 import { IService } from "./services/base.service.js";
 import twitterRouter from "./routes/twitter.js";
-import discordRouter from "./routes/discord.js";
 import reputationGraphRouter from "./routes/reputationGraph.js";
 
 import cookieParser from "cookie-parser";
-import githubRouter from "./routes/github.js";
 import { AnyType } from "./utils.js";
 import { isHttpError } from "http-errors";
 import { TwitterService } from "./services/twitter.service.js";
@@ -53,18 +51,11 @@ app.use("/telegram/webhook", telegramService.getWebhookCallback());
 // Mount Twitter OAuth routes
 app.use("/auth/twitter", twitterRouter);
 
-// Mount Discord OAuth routes
-app.use("/auth/discord", discordRouter);
-
-// Mount GitHub OAuth routes
-app.use("/auth/github", githubRouter);
-
 app.use("/reputation", reputationGraphRouter);
 
 // 404 handler
 app.use((_req: Request, _res: Response, _next: NextFunction) => {
   console.log(_req.method, _req.url);
-  console.log("sss")
   _res.status(404).json({
     message: `Route ${_req.method} ${_req.url} not found`,
   });
