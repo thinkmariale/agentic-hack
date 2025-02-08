@@ -1,24 +1,36 @@
+import { BaseService } from "./base.service.js";
 
 import { ethers, Wallet } from "ethers";
 import { ReputationAgent__factory, ReportedPost, CopyrightInfringementUser } from "../contracts/types/index.js";
-import { AddInfringementReponse } from "src/contracts/types/ReputationAgent.js";
+import { AddInfringementReponse } from "../contracts/types/ReputationAgent.js";
 import { ReputationAlgorithmService } from "./reputationAlgorithm.service.js";
-import { OffenseContextScore } from "src/contracts/types/ReputationAlgorithm.js";
+import { OffenseContextScore } from "../contracts/types/ReputationAlgorithm.js";
 
-export class ReputationContractService {
+export class ReputationContractService extends BaseService{
   private static instance: ReputationContractService;
   private signer: ethers.Wallet | null = null;
   private contract: ethers.Contract | null = null;
 
   private constructor() {
+    super();
     // const RPC_URL = 'http://127.0.0.1:8545/';
     const RPC_URL=process.env.RPC_URL ?? "http://127.0.0.1:8545/";
     const wallet = new Wallet(process.env.WALLET_KEY!);
     this.signer = wallet.connect(new ethers.JsonRpcProvider(RPC_URL));
 
     this.contract = ReputationAgent__factory.connect(this.signer);
-  }
 
+  }
+  public static getInstance(): ReputationContractService {
+    if (!ReputationContractService.instance) {
+      ReputationContractService.instance = new ReputationContractService();
+    }
+    return ReputationContractService.instance;
+  }
+  
+  public async start(): Promise<void> {}
+  public async stop(): Promise<void> {}
+  
   private async updateUserPostSeverityScores(userId: string): Promise<void> {
     const posts = await this.getUsersPosts(userId);
     const algorithmService = ReputationAlgorithmService.getInstance();
@@ -50,12 +62,6 @@ export class ReputationContractService {
     return { score, posts };
   }
 
-  public static getInstance(): ReputationContractService {
-    if (!ReputationContractService.instance) {
-      ReputationContractService.instance = new ReputationContractService();
-    }
-    return ReputationContractService.instance;
-  }
 
   public async addInfringement(infringeUser: CopyrightInfringementUser, post: ReportedPost): Promise<AddInfringementReponse | null> {
     try {

@@ -24,7 +24,8 @@ export function ReputationGraph() {
   }
   useEffect(() => {
     callUsersGraph()
-  }, [setReputations])
+    callPostsGraph()
+  }, [setReputations, setPosts])
 
   const handleAddInfringerSubgraph = async (e: React.MouseEvent) => {
     console.log('handleAddInfringerSubgraph')
@@ -140,6 +141,13 @@ export function ReputationGraph() {
           )}
           {posts && (
               <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts?.reportedPosts} />
+          )}
+           {posts && (
+            <form>
+              <label>posts</label>
+              <br />
+              <textarea style={{ width: "100%" }} value={JSON.stringify(posts, null, 2)} readOnly rows={25} />
+            </form>
           )}
         </div>
     </div>
