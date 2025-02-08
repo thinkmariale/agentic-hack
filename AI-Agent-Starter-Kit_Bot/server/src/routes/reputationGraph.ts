@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 
 import { ReportedPost, CopyrightInfringementUser} from "../contracts/types/index.js";
 // import { ethers,Wallet } from "ethers";
-import  {ReputationContractService} from "../services/reputationContractservice.js"
+import  {ReputationContractService} from "../services/reputationContract.service.js"
 // rpcUrl=
 const router = Router();
 // const states = new Set<string>();
@@ -69,7 +69,7 @@ router.get("/get/reportedPost", async (req: Request, res: Response) => {
     const { code, state } = req.query;
     console.log(code, state)
     const repService = ReputationContractService.getInstance();
-    const posts = await repService.getReportedPosts();
+    const posts = await repService.getReportedPost('0x5fbdb2315678afecb367f032d93f642f64180aa3');
     res.json({
       success: true,
       message: " got posts successful",
