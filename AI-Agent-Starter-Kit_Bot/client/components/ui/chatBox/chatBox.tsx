@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FaUser } from "react-icons/fa";
 import { FaCirclePlus, FaUserAstronaut } from "react-icons/fa6";
 import { FaArrowCircleUp } from "react-icons/fa";
+import { MdCancel } from "react-icons/md";
 import styles from "./chatBox.module.css"
 
 interface ChatBoxProps {
@@ -30,6 +31,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
     ]);
     const [isTyping, setIsTyping] = useState<boolean>(false);
     const [imageToUpload, setImageToUpload] = useState<File>();
+    const [imagePreview, setImagePreview] = useState<string>();
     const [inputMessage, setInputMessage] = useState<string>('');
     const [nextMessageId, setNextMessageId] = useState<number>(0);
     const chatRef = useRef<HTMLDivElement>(null);
@@ -82,10 +84,29 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
         if (!image) return;
 
         setImageToUpload(image);
+        setImagePreview(URL.createObjectURL(image));
+    }, []);
+
+    const onRemoveImage = useCallback(() => {
+        setImageToUpload(undefined);
+        setImagePreview(undefined);
     }, []);
 
     const handleChangeInputMessage = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setInputMessage(event.target.value);
+    }, []);
+
+    const extractImageStringFromFile = useCallback(async (file: File) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        return new Promise<string>((resolve) => {
+            reader.onload = () => {
+                resolve(reader.result as string);
+            }
+            reader.onerror = () => {
+                resolve('');
+            }
+        })
     }, []);
 
     useEffect(() => {
@@ -94,16 +115,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
             const currentMessages = [...messages];
             for (const msg of currentMessages) {
                 if (msg.image && !msg.imagePreview) {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        msg.imagePreview = reader.result as string;
-                    }
-                    reader.readAsDataURL(msg.image);
+                    msg.imagePreview = await extractImageStringFromFile(msg.image);
                 }
             }
             setMessages(currentMessages);
         }
-        
+
         setImagePreviews();
     }, [messages.length])
 
@@ -120,39 +137,47 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
                         <div className={`${styles.bubble} ${msg.user === "user" ? styles.userBubble : styles.computerBubble}`}>
                             {msg.message && <p>{msg.message}</p>}
                             {msg.image && <img src={msg.imagePreview} alt="Sent" className={styles.messageImage} />}
-                            <span className={styles.timestamp}>{msg.timestamp}</span>
+                            <span className={`${styles.timestamp} ${msg.user === "user" ? styles.userTimestamp : "" }`}>{msg.timestamp}</span>
                         </div>
                     </div>
                 ))}
                 {isTyping && <div className={styles.typing}>Computer is typing...</div>}
             </div>
-            <div className={styles.inputBox}>
-                <div className={styles.fileInputContainer}>
-                    <input 
-                        className={styles.fileInput} 
-                        id="fileInput" 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleImageUpload} 
-                    />
-                    <label htmlFor="fileInput" className={styles.fileInputIcon}>
-                        <FaCirclePlus />
-                    </label>
+            {imagePreview &&
+                <div className={styles.imagePreviewContainer}>
+                    <img src={imagePreview} alt="Preview" className={styles.imagePreview} />
+                    <button className={styles.removeImageButton} onClick={onRemoveImage}>
+                        <MdCancel />
+                    </button>
+                </div>
+             }
+                    <div className={styles.inputBox}>
+                        <div className={styles.fileInputContainer}>
+                            <input
+                                className={styles.fileInput}
+                                id="fileInput"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                            />
+                            <label htmlFor="fileInput" className={styles.fileInputIcon}>
+                                <FaCirclePlus />
+                            </label>
 
+                        </div>
+                        <input
+                            className={styles.textInput}
+                            type="text"
+                            placeholder="Send a message"
+                            value={inputMessage}
+                            onChange={handleChangeInputMessage}
+                        />
+                        <div className={`${styles.fileInputContainer} ${styles.sendButton}`}>
+                            <FaArrowCircleUp onClick={handleSendMessage} />
+                        </div>
+                    </div>
                 </div>
-                <input
-                    className={styles.textInput}
-                    type="text"
-                    placeholder="Send a message"
-                    value={inputMessage}
-                    onChange={handleChangeInputMessage}
-                />
-                <div className={`${styles.fileInputContainer} ${styles.sendButton}`}>
-                    <FaArrowCircleUp onClick={handleSendMessage} />
-                </div>
-            </div>
-        </div>
     )
 }
 
-export default ChatBox;
+            export default ChatBox;
