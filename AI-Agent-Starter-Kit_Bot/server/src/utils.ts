@@ -106,7 +106,7 @@ export const verifyContent = async (
     const formData = new FormData();
     formData.append("content", blob, `verify.${format}`);
 
-    const verifyUrl = `${process.env.VERIFY_API_URL}verify/scanners?scannerId=mentaportbot&contentFormat=${format}&url=${url}&wallet=${wallet}`;
+    const verifyUrl = `${process.env.VERIFY_API_URL}verify?contentFormat=${format}&url=${url}&wallet=${wallet}`;
     console.log("sending verify call: ", verifyUrl);
     const headers = new Headers({
       "x-api-key": process.env.VERIFY_API_KEY as string,
