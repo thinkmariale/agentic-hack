@@ -16,7 +16,6 @@
     "build": "pnpm -r run build",
     "start": "pnpm -r run start",
     "lint": "pnpm -r run lint",
-    "copy-abi": "cp ./../../../subgraphs/reputation-subgraph/packages/subgraph/abis/localhost_ReputationAgent.json  ./server/src/contracts/abi/localhost_ReputationAgent.json",
     "clean": "rimraf node_modules **/node_modules **/dist **/.next **/next-env.d.ts",
     "reset": "rimraf node_modules **/node_modules **/dist **/.next **/next-env.d.ts pnpm-lock.yaml eliza.sqlite twitter-cookies.json",
     "letsgo": "pnpm i && pnpm run dev",

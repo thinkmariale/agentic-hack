@@ -2,7 +2,7 @@ import { BaseService } from "./base.service.js";
 import { Profile, Scraper, SearchMode, Tweet } from "agent-twitter-client";
 import fs from "fs/promises";
 import { join, dirname } from "path";
-import { verifyContent } from "../utils.js";
+import { pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
 import { getCollablandApiUrl } from "../utils.js";
 import { IAccountInfo } from "../types.js";
 import axios, { AxiosError } from "axios";
@@ -21,7 +21,7 @@ export class TwitterService extends BaseService {
   private scraper: Scraper | null = null;
   private isConnected: boolean = false;
   public me: Profile | undefined = undefined;
-  // private latestTweetId: string | null = null;
+  private latestTweetId: string | null = null;
   public pollInterval: NodeJS.Timeout | null = null;
 
   private constructor() {
@@ -87,7 +87,7 @@ export class TwitterService extends BaseService {
       console.log(tweet);
 
       console.log("get tweet by Id");
-      if (tweet.text?.toLowerCase().includes("/mint")) {
+      if (tweet.text?.toLowerCase().includes("mint")) {
         try {
           // const [_, recipient, amount] = tweet.text.split(' ');
           // const tx = await contract.mint(recipient, amount);
@@ -99,7 +99,10 @@ export class TwitterService extends BaseService {
           );
         }
       }
-      if (tweet.text?.toLowerCase().includes("/verify")) {
+      if (tweet.text?.toLowerCase().includes("verify")) {
+        if (this.latestTweetId && tweet.id && tweet.id <= this.latestTweetId) continue;
+        this.latestTweetId = tweet.id as string;
+
         if (tweet.inReplyToStatusId) {
           tweet = (await this.getTweetById(tweet.inReplyToStatusId)) as Tweet;
         }
@@ -108,24 +111,26 @@ export class TwitterService extends BaseService {
           const userWalletAddress = await this.getTwitterUserIdWalletAddress(
             tweet.userId as string
           );
-          const result = await verifyContent(
+          const verifyResult = await verifyContent(
             tweet.photos[0].url,
             tweet.permanentUrl || "",
             userWalletAddress.account || "na"
-          );
+          ) as VerificationResult;
 
-          console.log("verify call result: ", result);
-          const stringifiedResult = JSON.stringify(result);
-          // if it has a valid certificate, send it to create a post entry in the graph
-          if (stringifiedResult.includes("valid")) {
-            console.log("add reported post to graph");
-            // await this.addReportedPostToGraph(tweet);
-          }
+          console.log("verify call result: ", verifyResult);
+
+          const finalStatus = await pollVerificationStatus(verifyResult.data.verId);
 
           console.log("send tweet");
           try {
+            let tweetReply = '';
+            if(finalStatus && finalStatus === 'Certified') {
+              tweetReply = `Certificate found and you can view the ceritifcate transaction at ${finalStatus.data.certificate.txnHash}`
+            } else {
+              tweetReply = `No certificate found and contetn can't be verified`
+            }
             const res = await this.scraper.sendTweet(
-              `Verification result: ${stringifiedResult}`,
+              `Here is the verification result. ${tweetReply}`,
               tweet.id
             );
             console.log(res);
@@ -137,31 +142,7 @@ export class TwitterService extends BaseService {
     }
   }
 
-  private async addReportedPostToGraph(tweet: Tweet) {
-    try {
-      const response = await fetch(`/api/reputation/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(tweet),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(data);
-      console.log("Successfully added reported post to graph");
-      return data;
-    } catch (error: unknown) {
-      console.error("[TwitterService] Error adding reported post to graph:", error);
-      return null;
-    }
-  }
-
-  private startPolling(intervalMs: number = 15000) {
+  private startPolling(intervalMs: number = 30000) {
     this.pollInterval = setInterval(
       () => this.pollMentionListener(),
       intervalMs

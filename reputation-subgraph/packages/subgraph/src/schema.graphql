@@ -1,0 +1,20 @@
+type IReputation @entity {
+  id: ID!
+  userId: Bytes!
+  username: String!
+  platform: String!
+  reputationScore: BigInt!
+  isOffense: Boolean
+}
+
+type IReportedPost @entity {
+  id: ID!
+  recordId: BigInt!
+  userId: Bytes!
+  postText: String
+  postUrl: String
+  timestamp: BigInt
+  derivedContext: String
+  derivedContextExplanation: String
+  severityScore: BigInt!
+}
