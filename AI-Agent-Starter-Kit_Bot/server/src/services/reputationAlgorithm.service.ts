@@ -13,7 +13,7 @@ export class ReputationAlgorithmService {
     constructor() {
         this.gaiaUrl = "https://0x58598ed2556a25062e011b23c93118ee645fd0a6.gaia.domains/v1/chat/completions";
         this.prompt = `
-                Task: Analyze the intent behind a Twitter post to classify whether the user is plagiarizing digital content, misattributing it, or following fair use principles.
+                Your Task: Analyze the intent behind a Twitter post to classify whether the user is plagiarizing digital content, misattributing it, or following fair use principles.
 
                 Instructions:
                 - You will be given a Twitter post text, username of the user who posted the content, and username of the original content creator.
@@ -92,7 +92,7 @@ export class ReputationAlgorithmService {
                 "explanation": "The user claimed they 'just finished creating' the piece, implying original authorship. However, the original content creator is @artist456, and no credit was given."
                 }
 
-                Ensure the model strictly follows the JSON output format. If text includes both plagiarism and fair use elements, classify based on the dominant intent.
+                Ensure the model strictly follows the JSON output format. If text includes both plagiarism and fair use elements, classify based on the dominant intent. Wait for the user to send their JSON for you to respond. DO NOT RESPOND WITH ANYTHING OTHER THAN THE SPECIFIED MODEL OUTPUT FORMAT.
                 `;
     }
 
