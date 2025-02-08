@@ -29,9 +29,9 @@ export const DataTable: React.FC<TableProps> = ({
     data,
     title,
     height = 500,
-    rowHeight = 52, // MUI default row height
+    rowHeight = 52,
 }) => {
-    // Convert TableColumn to MUI GridColDef
+
     const columnDefs: GridColDef[] = columns.map((col) => ({
         field: col.id,
         headerName: col.title,
@@ -39,12 +39,11 @@ export const DataTable: React.FC<TableProps> = ({
         renderCell: col.customRenderer
             ? (params) => col.customRenderer?.(params)
             : undefined,
-        filterable: !!col.type, // Enable filtering if a type exists
+        filterable: !!col.type, 
     }));
 
-    // Ensure each row has a unique `id` for DataGrid
     const rowData = data?.map((row, index) => ({
-        id: row.id ?? index, // Use existing id or fallback to index
+        id: row.id ?? index,
         ...row,
     }));
 
@@ -55,10 +54,20 @@ export const DataTable: React.FC<TableProps> = ({
             )}
             <div style={{ height: typeof height === "number" ? `${height}px` : height, width: "100%", flex: 1 }}>
                 <DataGrid
+                    className="custom-data-grid"
                     rows={rowData}
                     columns={columnDefs}
                     pageSizeOptions={[5, 10, 20]}
                     rowHeight={rowHeight}
+                    sx={{
+                        "& .MuiDataGrid-row--borderBottom": {
+                            background: "#f0f0f0 !important",
+                        },
+                        "& .MuiDataGrid-columnHeaderTitle": {
+                            fontWeight: "bold",
+                        },
+                    }}
+                    disableRowSelectionOnClick
                 />
             </div>
         </div>

@@ -1,0 +1,10 @@
+/* DataGrid Header Styling */
+.custom-data-grid .MuiDataGrid-columnHeaders {
+    background-color: #f0f0f0; /* Slightly darker than white */
+    font-weight: bold;
+}
+
+/* Ensure header text is bold */
+.custom-data-grid .MuiDataGrid-columnHeaderTitle {
+    font-weight: bold;
+}
