@@ -1,5 +1,9 @@
 import { Router, Request, Response } from "express";
 
+// import { parseEther, toBeHex } from "ethers";
+import { ethers } from "ethers";
+import { Tweet } from "agent-twitter-client";
+
 import { ReportedPost, CopyrightInfringementUser} from "../contracts/types/index.js";
 // import { ethers,Wallet } from "ethers";
 import  {ReputationContractService} from "../services/reputationContract.service.js"
@@ -18,42 +22,76 @@ const router = Router();
 // }
 
 router.post("/add", async (_req: Request, res: Response) => {
-  try {
-    // TODO: Ron here to add to subgraph
-    const curTime = new Date().getTime()
-    const cp: CopyrightInfringementUser ={
-      userId: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
-      platform: "twitter",
-      username: "username",
-      offenseCount: 1,
-      postCount: 1,
-      firstOffenseTimestamp:curTime,
-      lastOffenseTimestamp: curTime,
-      reputationScore: 1,
-    };
+  // get the tweet object from the body
+  const tweet = _req.body as Tweet;
+  // get post text, url, username, and user id from the tweet object
+  const { text, permanentUrl, userId, username, timestamp } = tweet;
+  // now in ms
+  const currTime = new Date().getTime();  
+  const repService = ReputationContractService.getInstance();
 
-    const post: ReportedPost = {
-      recordId: "0x21",
-      userId: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
-      contentHash: "0x214444331",
-      postText: "postText",
-      postUrl: "postUrl",
-      timestamp: curTime,
-      severityScore: 1,
-      derivedContext: "plagiarism",
-      derivedContextExplanation:"something"
+  // find or create the user in the graph
+  let user: CopyrightInfringementUser = {
+    userId: userId!,
+    platform: "twitter",
+    username: username!,
+    offenseCount: 0,
+    postCount: 0,
+    firstOffenseTimestamp: undefined,
+    lastOffenseTimestamp: undefined,
+    reputationScore: undefined
+  }
+
+  try {
+    const existingUser = await repService.getCopyrightInfringementUser(userId!);
+    if (existingUser) {
+      user = existingUser;
     }
-    console.log("HERE", curTime)
-    const repService = ReputationContractService.getInstance();
-    // const signer = getSigner();
-    // const contract = ReputationAgent__factory.connect(signer);
-    // console.log("contract 1", contract.interface.fragments)
-    // // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // // @ts-ignore
-    // const resultInfr = await contract.AddInfringement(cp, post, true);
-    // const result = await contract.GetReputationScore("0x5fbdb2315678afecb367f032d93f642f64180aa3");
-    const resultInfr = await repService.addInfringement(cp, post, true);
-    const result = await repService.getReputationScore("0x5fbdb2315678afecb367f032d93f642f64180aa3");
+  } catch (error) {
+    console.error("Error getting user from graph", error);
+  }
+
+  // find or create the post in the graph
+  const contentHash = ethers.sha256((text || "") + permanentUrl + username + "twitter");
+    const recordId = ethers.uuidV4(contentHash);
+
+  let post: ReportedPost = {
+    recordId: recordId,
+    userId: userId!,
+    contentHash: contentHash,
+    postText: text,
+    postUrl: permanentUrl,
+    timestamp: timestamp || currTime,
+    reportedTimestamp: currTime,
+    severityScore: undefined,
+    derivedContext: undefined,
+    derivedContextExplanation: undefined
+  }
+
+  // see if the post already exists in the graph
+  let postExists = false;
+  try {
+    const existingPost = await repService.getReportedPost(contentHash);
+    if (existingPost) {
+      post = existingPost;
+      postExists = true;
+    }
+  } catch (error) {
+    console.error("Error getting post from graph", error);
+  }
+
+  /* No need to recalculate the reputation score if the post already exists */
+  if (postExists && post.severityScore && user.reputationScore) {
+    res.json({ message: "Post already reported", reputationScore: user.reputationScore, post: post });
+    return;
+  }
+
+  try {
+    console.log("HERE", currTime)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const resultInfr = await repService.addInfringement(user, post);
+    const result = await repService.getReputationScore(user.userId);
     console.log(resultInfr)
     console.log('result',result);
     res.json({ message:"hello form back" });

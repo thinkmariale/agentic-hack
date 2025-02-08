@@ -6,7 +6,7 @@
     "build": "next build",
     "check-types": "tsc --noEmit --incremental",
     "client": "graphclient build",
-    "dev": "next dev",
+    "dev": "next dev -p 3004",
     "format": "prettier --write . '!(node_modules|.next|contracts)/**/*'",
     "lint": "next lint",
     "serve": "next start",

@@ -46,13 +46,14 @@ export class TelegramService extends BaseService {
 
   private constructor(webhookUrl?: string) {
     super();
+
     if (!process.env.TELEGRAM_BOT_TOKEN) {
       throw new Error("TELEGRAM_BOT_TOKEN is required");
     }
     if (webhookUrl != null) {
       this.webhookUrl = `${webhookUrl}/telegram/webhook`;
     }
-    this.bot = new Bot(process.env.TELEGRAM_BOT_TOKEN);
+    this.bot = new Bot(process.env.TELEGRAM_BOT_TOKEN!);
     this.elizaService = ElizaService.getInstance(this.bot);
     console.log(webhookUrl);
   }
