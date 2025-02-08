@@ -4,7 +4,7 @@ import { ethers, Wallet } from "ethers";
 import { ReputationAgent__factory, ReportedPost, CopyrightInfringementUser } from "../contracts/types/index.js";
 import { AddInfringementReponse, OffenseContext } from "../contracts/types/ReputationAgent.js";
 import { ReputationAlgorithmService } from "./reputationAlgorithm.service.js";
-import { OffenseContextScore } from "src/contracts/types/ReputationAlgorithm.js";
+import { OffenseContextScore } from "../contracts/types/ReputationAlgorithm.js";
 
 export class ReputationContractService extends BaseService{
   private static instance: ReputationContractService;

@@ -30,8 +30,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
     const [nextMessageId, setNextMessageId] = useState<number>(0);
     const chatRef = useRef<HTMLDivElement>(null);
 
-    // set initial message
-    useEffect(() => {
+    const SetInitMessages = () => {
         const newMessages: ChatBoxMessage[] = [
             {
                 message: "Hey! I'm Monty, your AI agent. How can I help you today?",
@@ -43,7 +42,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
         console.log("initial messages", newMessages);
         setNextMessageId((prev) => prev + 1);
         setMessages(newMessages);
-    }, [])
+    }
+    // set initial message
+    useEffect(() => {
+      
+        SetInitMessages()
+    }, [setMessages])
 
     const handleSendMessage = useCallback(async () => {
         if (!inputMessage && !imageToUpload) return;
@@ -58,7 +62,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
             id: nextMessageIdToUse++,
         }
 
-        setMessages([...currentMessages, newMessage]);
         setNextMessageId(nextMessageIdToUse);
         setIsTyping(true);
         const response = await onSendMessage(inputMessage, imageToUpload);
@@ -79,7 +82,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
         }
 
         setNextMessageId(nextMessageIdToUse);
-        setMessages([...currentMessages, agentMessage]);
+        setMessages([...currentMessages, newMessage, agentMessage]);
     }, [
         inputMessage,
         imageToUpload,
@@ -120,6 +123,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
 
     useEffect(() => {
         console.log("messages changed", messages);
+        if(messages.length === 0) return;
         // populate image previews if they are not already set
         const setImagePreviews = async () => {
             const currentMessages = [...messages];
@@ -135,26 +139,24 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
     }, [messages.length])
 
 
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Enter') {
-                handleSendMessage();
-            }
-        }
-
-        window.addEventListener('keydown', handleKeyDown);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        }
-    }, [handleSendMessage]);
-
-
+    // useEffect(() => {
+        
+    //     const handleKeyDown = (event: KeyboardEvent) => {
+    //         if (event.key === 'Enter') {
+    //             handleSendMessage();
+    //         }
+    //     }
+    //     window.addEventListener('keydown', handleKeyDown);
+    //     return () => {
+    //         window.removeEventListener('keydown', handleKeyDown);
+    //     }
+    // }, [handleSendMessage]);
 
     return (
         <div className={styles.chatContainer}>
             <div className={styles.chatBox} ref={chatRef}>
                 {messages.map((msg) => (
+                   
                     <div key={msg.id} className={`${styles.message} ${msg.user === "user" ? styles.userMessage : ""}`}>
                         <div className={styles.avatar}>
                             {msg.user === "user" ? <FaUser /> : <FaUserAstronaut />}

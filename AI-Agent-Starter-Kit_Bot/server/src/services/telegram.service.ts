@@ -42,7 +42,7 @@ export class TelegramService extends BaseService {
 
   private constructor(webhookUrl?: string) {
     super();
-
+    console.log('hre',process.env.TELEGRAM_BOT_TOKEN)
     if (!process.env.TELEGRAM_BOT_TOKEN) {
       throw new Error("TELEGRAM_BOT_TOKEN is required");
     }

@@ -162,7 +162,6 @@ export class ReputationAlgorithmService {
         return offenses.length * OffenseScoreWeights.frequencyWeight;
     }
 
-
     public generateUserOverallReputationScore(offenses: ReportedPost[]) {
         offenses = offenses.filter(offense => offense.severityScore !== undefined);
 
