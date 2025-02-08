@@ -1,5 +1,9 @@
-import { OffenseContext, ReportedPost } from "src/contracts/types/ReputationAgent.js";
-import { NodeContext, OffenseContextScore, OffenseScoreWeights, PostContextResponse } from "src/contracts/types/ReputationAlgorithm.js";
+import { OffenseContext, ReportedPost } from "../contracts/types/ReputationAgent.js";
+import {
+    NodeContext, 
+    OffenseContextScore,
+    OffenseScoreWeights, 
+    PostContextResponse } from "..//contracts/types/ReputationAlgorithm.js";
 
 export class ReputationAlgorithmService {
     private static instance: ReputationAlgorithmService;

@@ -14,6 +14,9 @@ export function ReputationGraph() {
     execute(GetReputationsDocument, {}).then((result: { data: any; }) => {
       setReputations(result?.data)
     })
+    execute(GetPostsDocument, {}).then((result: { data: any; }) => {
+      setPosts(result?.data)
+    })
   }
   useEffect(() => {
     callGraph()
@@ -66,6 +69,13 @@ export function ReputationGraph() {
               <label>CopyrightInfringementUser</label>
               <br />
               <textarea style={{ width: "100%" }} value={JSON.stringify(reputations, null, 2)} readOnly rows={25} />
+            </form>
+          )}
+           {posts && (
+            <form>
+              <label>posts</label>
+              <br />
+              <textarea style={{ width: "100%" }} value={JSON.stringify(posts, null, 2)} readOnly rows={25} />
             </form>
           )}
         </div>

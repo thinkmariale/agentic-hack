@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { NgrokService } from "./services/ngrok.service.js";
 // import { TelegramService } from "./services/telegram.service.js";
+import { ReputationContractService } from "./services/reputationContract.service.js";
 import { IService } from "./services/base.service.js";
 import twitterRouter from "./routes/twitter.js";
 import reputationGraphRouter from "./routes/reputationGraph.js";
@@ -108,6 +109,11 @@ app.listen(port, async () => {
 
     // const botInfo = await telegramService.getBotInfo();
     // console.log("Telegram Bot URL:", `https://t.me/${botInfo.username}`);
+
+    // Initializing ReputationContractService
+    const reputationContractService = ReputationContractService.getInstance();
+    services.push(reputationContractService);
+
   } catch (e) {
     console.error("Failed to start server:", e);
     process.exit(1);
