@@ -32,14 +32,17 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
 
     // set initial message
     useEffect(() => {
-        setMessages([
+        const newMessages: ChatBoxMessage[] = [
             {
                 message: "Hey! I'm Monty, your AI agent. How can I help you today?",
                 timestamp: new Date().toLocaleString(),
                 user: 'agent',
                 id: 0,
             }
-        ])
+        ]
+        console.log("initial messages", newMessages);
+        setNextMessageId((prev) => prev + 1);
+        setMessages(newMessages);
     }, [])
 
     const handleSendMessage = useCallback(async () => {
@@ -116,6 +119,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
     }, []);
 
     useEffect(() => {
+        console.log("messages changed", messages);
         // populate image previews if they are not already set
         const setImagePreviews = async () => {
             const currentMessages = [...messages];

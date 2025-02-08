@@ -2,9 +2,9 @@ import { BaseService } from "./base.service.js";
 
 import { ethers, Wallet } from "ethers";
 import { ReputationAgent__factory, ReportedPost, CopyrightInfringementUser } from "../contracts/types/index.js";
-import { AddInfringementReponse } from "../contracts/types/ReputationAgent.js";
+import { AddInfringementReponse, OffenseContext } from "../contracts/types/ReputationAgent.js";
 import { ReputationAlgorithmService } from "./reputationAlgorithm.service.js";
-import { OffenseContextScore } from "../contracts/types/ReputationAlgorithm.js";
+import { OffenseContextScore } from "src/contracts/types/ReputationAlgorithm.js";
 
 export class ReputationContractService extends BaseService{
   private static instance: ReputationContractService;
@@ -31,23 +31,20 @@ export class ReputationContractService extends BaseService{
   public async start(): Promise<void> {}
   public async stop(): Promise<void> {}
   
-  private async updateUserPostSeverityScores(userId: string): Promise<void> {
-    const posts = await this.getUsersPosts(userId);
+  private async generatePostSeverityScore(post: ReportedPost): Promise<{ severityScore: number, context: OffenseContext, explanation: string }> {
     const algorithmService = ReputationAlgorithmService.getInstance();
+    const res = await algorithmService.generatePostSeverityScore(post);
 
-    // update the severity score for each post that does not already have one
-    const missingSeverityScorePosts = posts.filter(post => post.severityScore === undefined);
-    for (const post of missingSeverityScorePosts) {
-      const res = await algorithmService.generatePostSeverityScore(post);
-      if (!res) {
-        continue;
+    if (!res) 
+      return {
+        severityScore: 0,
+        context: "unknown",
+        explanation: 'We were unable to determine the context of the offense.',
       }
 
       const { context, explanation } = res;
       const severityScore = OffenseContextScore[context];
-
-      await this.updateReportedPost(post.recordId, severityScore, context, explanation);
-    }
+      return { severityScore, context, explanation };
   }
 
   private async generateUserReputationScore(userId: string): Promise<{ score: number, posts: ReportedPost[] } | null> {
@@ -88,8 +85,12 @@ export class ReputationContractService extends BaseService{
         return null;
       }
 
+      const derivedContextRes = await this.generatePostSeverityScore(post);
+      const { severityScore, context, explanation } = derivedContextRes;
+      post.severityScore = severityScore;
+      post.derivedContext = context;
+      post.derivedContextExplanation = explanation;
       const result = await this.contract.AddInfringement(infringeUser, post);
-      await this.updateUserPostSeverityScores(infringeUser.userId);
       const scoreRes = await this.generateUserReputationScore(infringeUser.userId);
       if (!scoreRes) {
         return null;

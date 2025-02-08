@@ -6,6 +6,9 @@ import { CertificateParams, createCertificate, pollVerificationStatus, Verificat
 import { getCollablandApiUrl } from "../utils.js";
 import { IAccountInfo } from "../types.js";
 import axios, { AxiosError } from "axios";
+import { ReputationContractService } from "./reputationContract.service.js";
+import { CopyrightInfringementUser, ReportedPost } from "src/contracts/types/ReputationAgent.js";
+import { ethers } from "ethers";
 
 const __dirname = dirname(new URL(import.meta.url).pathname);
 const twitterCookiesPath = join(
@@ -68,6 +71,7 @@ export class TwitterService extends BaseService {
   }
 
   private async pollMentionListener() {
+    const repService = ReputationContractService.getInstance();
     if (!this.scraper) throw new Error("Twitter service not started");
     console.log("waiting for X mentions ... ");
 
@@ -110,6 +114,37 @@ export class TwitterService extends BaseService {
             let tweetReply = '';
             if(finalStatus && finalStatus === 'Certified') {
               tweetReply = `Certificate found and you can view the ceritifcate transaction at ${finalStatus.data.certificate.txnHash}`
+              const { text, permanentUrl, userId, username, timestamp } = tweet;
+              const currTime = new Date().getTime();
+              const contentHash = ethers.sha256((text || "") + permanentUrl + username + "twitter");
+              const recordId = ethers.uuidV4(contentHash);
+              // create new user and new post
+              const user: CopyrightInfringementUser = {
+                userId: userId!,
+                platform: "twitter",
+                username: username!,
+                offenseCount: 0,
+                postCount: 0,
+                firstOffenseTimestamp: undefined,
+                lastOffenseTimestamp: undefined,
+                reputationScore: undefined
+              }
+              const post: ReportedPost = {
+                recordId: recordId,
+                userId: userId!,
+                contentHash: contentHash,
+                postText: text,
+                postUrl: permanentUrl,
+                timestamp: timestamp || currTime,
+                reportedTimestamp: currTime,
+                severityScore: undefined,
+                derivedContext: undefined,
+                derivedContextExplanation: undefined
+              }
+
+              const res = await repService.addInfringement(user, post);
+              // turn this into natural text.
+              tweetReply = JSON.stringify(res);
             } else {
               tweetReply = `No certificate found and contetn can't be verified`
             }
