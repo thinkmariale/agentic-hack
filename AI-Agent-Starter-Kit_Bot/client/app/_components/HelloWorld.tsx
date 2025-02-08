@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import {
   Card,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, AlertCircle } from "lucide-react";
+import ChatBox from "@/components/ui/chatBox/chatBox";
 
 export default function HelloWorld() {
   const [isConfigured, setIsConfigured] = useState<boolean>(
@@ -32,6 +33,13 @@ export default function HelloWorld() {
     }
   }, [isConfigured]);
 
+  const onSendMessage = useCallback(async (message: string, file?: File) => {
+    return {
+      success: true,
+      message: "This is a test response",
+    }
+  }, []);
+
   return (
     <div className="flex flex-col items-center w-full space-y-6 p-4">
       <Card className="w-full max-w-3xl">
@@ -42,6 +50,7 @@ export default function HelloWorld() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <ChatBox onSendMessage={onSendMessage} />
           {/* <Alert variant={isConfigured ? "default" : "destructive"}>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>API Configuration Status</AlertTitle>

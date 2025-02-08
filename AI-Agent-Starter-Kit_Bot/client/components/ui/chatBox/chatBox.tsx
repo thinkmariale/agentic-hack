@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaUser } from "react-icons/fa";
-import { FaUserAstronaut } from "react-icons/fa6";
+import { FaCirclePlus, FaUserAstronaut } from "react-icons/fa6";
 import { FaArrowCircleUp } from "react-icons/fa";
 import styles from "./chatBox.module.css"
 
@@ -20,7 +20,14 @@ interface ChatBoxMessage {
 }
 
 const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
-    const [messages, setMessages] = useState<ChatBoxMessage[]>([]);
+    const [messages, setMessages] = useState<ChatBoxMessage[]>([
+        {
+            message: "Hey! I'm Monty, your AI agent. How can I help you today?",
+            timestamp: new Date().toLocaleString(),
+            user: 'agent',
+            id: 0,
+        }
+    ]);
     const [isTyping, setIsTyping] = useState<boolean>(false);
     const [imageToUpload, setImageToUpload] = useState<File>();
     const [inputMessage, setInputMessage] = useState<string>('');
@@ -98,7 +105,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
         }
         
         setImagePreviews();
-    }, [messages])
+    }, [messages.length])
 
 
 
@@ -120,15 +127,32 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
                 {isTyping && <div className={styles.typing}>Computer is typing...</div>}
             </div>
             <div className={styles.inputBox}>
+                <div className={styles.fileInputContainer}>
+                    <input 
+                        className={styles.fileInput} 
+                        id="fileInput" 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleImageUpload} 
+                    />
+                    <label htmlFor="fileInput" className={styles.fileInputIcon}>
+                        <FaCirclePlus />
+                    </label>
+
+                </div>
                 <input
+                    className={styles.textInput}
                     type="text"
-                    placeholder="iMessage"
+                    placeholder="Send a message"
                     value={inputMessage}
                     onChange={handleChangeInputMessage}
                 />
-                <input type="file" accept="image/*" onChange={handleImageUpload} />
-                <FaArrowCircleUp onClick={handleSendMessage} color="cyan" />
+                <div className={`${styles.fileInputContainer} ${styles.sendButton}`}>
+                    <FaArrowCircleUp onClick={handleSendMessage} />
+                </div>
             </div>
         </div>
     )
 }
+
+export default ChatBox;
