@@ -22,6 +22,7 @@ export function ReputationGraph() {
       setPosts(result?.data)
     })
   }
+
   useEffect(() => {
     callUsersGraph()
     callPostsGraph()
@@ -141,13 +142,6 @@ export function ReputationGraph() {
           )}
           {posts && (
               <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts?.reportedPosts} />
-          )}
-           {posts && (
-            <form>
-              <label>posts</label>
-              <br />
-              <textarea style={{ width: "100%" }} value={JSON.stringify(posts, null, 2)} readOnly rows={25} />
-            </form>
           )}
         </div>
     </div>
