@@ -29,3 +29,12 @@ export interface ReportedPost {
   derivedContext?: OffenseContext;    // context of the offense (plagiarism, misattribution, etc.)
   derivedContextExplanation?: string; // explanation of the context
 }
+
+export interface AddInfringementReponse {
+  userId: string;
+  reputationScore: number;
+  post: {
+    offenseContext: OffenseContext;
+    offenseContextExplanation: string;
+  }
+}

@@ -1,7 +1,9 @@
 
 import { ethers, Wallet } from "ethers";
 import { ReputationAgent__factory, ReportedPost, CopyrightInfringementUser } from "../contracts/types/index.js";
-
+import { AddInfringementReponse } from "src/contracts/types/ReputationAgent.js";
+import { ReputationAlgorithmService } from "./reputationAlgorithm.service.js";
+import { OffenseContextScore } from "src/contracts/types/ReputationAlgorithm.js";
 
 export class ReputationContractService {
   private static instance: ReputationContractService;
@@ -16,6 +18,37 @@ export class ReputationContractService {
     this.contract = ReputationAgent__factory.connect(this.signer);
   }
 
+  private async updateUserPostSeverityScores(userId: string): Promise<void> {
+    const posts = await this.getUsersPosts(userId);
+    const algorithmService = ReputationAlgorithmService.getInstance();
+
+    // update the severity score for each post that does not already have one
+    const missingSeverityScorePosts = posts.filter(post => post.severityScore === undefined);
+    for (const post of missingSeverityScorePosts) {
+      const res = await algorithmService.generatePostSeverityScore(post);
+      if (!res) {
+        continue;
+      }
+
+      const { context, explanation } = res;
+      const severityScore = OffenseContextScore[context];
+
+      await this.updateReportedPost(post.recordId, severityScore, context, explanation);
+    }
+  }
+
+  private async generateUserReputationScore(userId: string): Promise<{ score: number, posts: ReportedPost[] } | null> {
+    const algorithmService = ReputationAlgorithmService.getInstance();
+    const user = await this.getCopyrightInfringementUser(userId);
+    if (!user) {
+      return null;
+    }
+
+    const posts = await this.getUsersPosts(userId);
+    const score = algorithmService.generateUserOverallReputationScore(posts);
+    return { score, posts };
+  }
+
   public static getInstance(): ReputationContractService {
     if (!ReputationContractService.instance) {
       ReputationContractService.instance = new ReputationContractService();
@@ -23,17 +56,68 @@ export class ReputationContractService {
     return ReputationContractService.instance;
   }
 
-  public async addInfringement(infringeUser: CopyrightInfringementUser, post: ReportedPost, offender: boolean): Promise<boolean> {
+  public async addInfringement(infringeUser: CopyrightInfringementUser, post: ReportedPost, offender: boolean): Promise<AddInfringementReponse | null> {
     try {
       if (!this.contract) {
-        return false;
+        return null;
       }
+
+      const existingPost = await this.getReportedPost(post.contentHash);
+      if (existingPost) {
+        // no need to recalculate the context. return the existing reputation score;
+        const existingUser = await this.getCopyrightInfringementUser(infringeUser.userId);
+        if (existingUser) {
+          const response: AddInfringementReponse = {
+            userId: existingUser.userId,
+            reputationScore: existingUser.reputationScore!,
+            post: {
+              offenseContext: existingPost.derivedContext!,
+              offenseContextExplanation: existingPost.derivedContextExplanation!,
+            }
+          }
+
+          return response;
+        }
+        return null;
+      }
+
       const result = await this.contract.AddInfringement(infringeUser, post, offender);
+      await this.updateUserPostSeverityScores(infringeUser.userId);
+      const scoreRes = await this.generateUserReputationScore(infringeUser.userId);
+      if (!scoreRes) {
+        return null;
+      }
+      const { score: reputationScore, posts: refreshedPosts } = scoreRes;
+      const infringingPosts = refreshedPosts.filter(post => post.severityScore !== undefined || post.severityScore !== 0).sort((a, b) => a.timestamp - b.timestamp);
+      const refreshedPost = refreshedPosts.find(p => p.contentHash === post.contentHash);
+      const isFirstOffense = !infringeUser.firstOffenseTimestamp && infringingPosts.length === 1;
+
+      const firstOffenseTimestamp = (isFirstOffense ? post.timestamp : infringeUser.firstOffenseTimestamp)!;
+      const lastOffenseTimestamp = infringingPosts[infringingPosts.length - 1].timestamp;
+      if (reputationScore) {
+        // update the user
+        await this.updateCopyrightInfringementUser(
+          infringeUser.userId, 
+          reputationScore, 
+          firstOffenseTimestamp, 
+          lastOffenseTimestamp,
+          refreshedPosts.length, 
+          infringingPosts.length);
+      }
+
       console.log(result)
-      return true
+      const res: AddInfringementReponse = {
+        userId: result.userId,
+        reputationScore: result.reputationScore,
+        post: {
+          offenseContext: refreshedPost?.derivedContext!,
+          offenseContextExplanation: refreshedPost?.derivedContextExplanation!,
+        }
+      }
+      return res;
     } catch (error) {
       console.log("Error (addInfringement):", error);
-      return false;
+      return null;
     }
   }
 
