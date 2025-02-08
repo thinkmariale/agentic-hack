@@ -20,6 +20,7 @@ import path, { resolve } from "path";
 import { keccak256, getBytes, toUtf8Bytes } from "ethers";
 import { TwitterService } from "./twitter.service.js";
 import { NgrokService } from "./ngrok.service.js";
+import { InputFile } from "grammy";
 
 // hack to avoid 400 errors sending params back to telegram. not even close to perfect
 const htmlEscape = (_key: AnyType, val: AnyType) => {
@@ -465,7 +466,22 @@ You can view the token page below (it takes a few minutes to be visible)`,
               }) as any;
               const approved = await approveResponse.json();
               console.log('check certificate approve status ..', approved)
-              await ctx.reply(`Congratulations! Certificate created and approved. Your certificate ID: ${approved.data.certId}. Find your certificate on-chain minted on Base chain in transaction: ${approved.data.txnHash}, and token Id (${approved.data.tokenId}) on this contract address (${approved.data.contractAddress}). If you want to check the certificate NFT metadata check the IPFS link here ${approved.data.metadataUri}`);
+
+              const downloadResponse = await fetch(
+                `${process.env.VERIFY_API_URL}/download?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`,
+                {
+                  headers: { 'x-api-key': process.env.CERT_API_KEY! }
+                }
+              );
+              const downloadData = await downloadResponse.json() as any;
+           
+              // Download image
+              const imageResponse = await fetch(downloadData.data);
+              const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+              await ctx.api.sendPhoto(ctx.chat.id, new InputFile(imageBuffer), {
+                caption: `Congratulations! Certificate created and approved.\nCertificate ID: ${approved.data.certId}\nTransaction: ${approved.data.txnHash}\nToken ID: ${approved.data.tokenId}\nContract: ${approved.data.contractAddress}\nMetadata: ${approved.data.metadataUri}`
+               });
+              // await ctx.reply(`Congratulations! Certificate created and approved. Your certificate ID: ${approved.data.certId}. Find your certificate on-chain minted on Base chain in transaction: ${approved.data.txnHash}, and token Id (${approved.data.tokenId}) on this contract address (${approved.data.contractAddress}). If you want to check the certificate NFT metadata check the IPFS link here ${approved.data.metadataUri}`);
             } else {
               await ctx.reply(`Certificate creation failed: ${status.status}. `);
             }

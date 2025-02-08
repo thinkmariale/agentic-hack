@@ -2,7 +2,7 @@ import { BaseService } from "./base.service.js";
 import { Profile, Scraper, SearchMode, Tweet } from "agent-twitter-client";
 import fs from "fs/promises";
 import { join, dirname } from "path";
-import { pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
+import { CertificateParams, createCertificate, pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
 import { getCollablandApiUrl } from "../utils.js";
 import { IAccountInfo } from "../types.js";
 import axios, { AxiosError } from "axios";
@@ -85,23 +85,10 @@ export class TwitterService extends BaseService {
     for await (let tweet of tweetStream) {
       console.log("single tweet");
       console.log(tweet);
-
+      if (this.latestTweetId && tweet.id && tweet.id <= this.latestTweetId) continue;
+      this.latestTweetId = tweet.id as string;
       console.log("get tweet by Id");
-      if (tweet.text?.toLowerCase().includes("mint")) {
-        try {
-          // const [_, recipient, amount] = tweet.text.split(' ');
-          // const tx = await contract.mint(recipient, amount);
-          await this.scraper.sendTweet(`Minted tokens to . TX: `, tweet.id);
-        } catch (error) {
-          await this.scraper.sendTweet(
-            `Error minting: ${error.message}`,
-            tweet.id
-          );
-        }
-      }
       if (tweet.text?.toLowerCase().includes("verify")) {
-        if (this.latestTweetId && tweet.id && tweet.id <= this.latestTweetId) continue;
-        this.latestTweetId = tweet.id as string;
 
         if (tweet.inReplyToStatusId) {
           tweet = (await this.getTweetById(tweet.inReplyToStatusId)) as Tweet;
@@ -137,6 +124,69 @@ export class TwitterService extends BaseService {
           } catch (err) {
             console.log(err);
           }
+        }
+      }
+      if (tweet.text?.toLowerCase().includes("mint") && tweet.photos.length > 0) {
+        try {
+          const fileExtension = tweet.photos[0].url.split('.').pop() || '';
+          
+          const params: CertificateParams = {
+            projectId: process.env.PROJECT_ID!,
+            contentFormat: fileExtension,
+            name: `Twitter Certificate - ${tweet.userId}`,
+            username: tweet.username || 'twitter_user',
+            description: tweet.text || 'Certificate created from Twitter',
+            aiTrainingMiningInfo: 'not_allowed',
+            usingAI: false
+          };
+   
+          const certificate = await createCertificate(tweet.photos[0].url, params) as any;
+          
+          await this.scraper.sendTweet(
+            `Starting certificate creation. Certificate ID: ${certificate.data.certId}`,
+            tweet.id
+          );
+   
+          let status;
+          do {
+            const statusResponse = await fetch(
+              `${process.env.VERIFY_API_URL}/certificates/status?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`,
+              { headers: { 'x-api-key': process.env.CERT_API_KEY! } }
+            );
+            status = await statusResponse.json() as any;
+            await new Promise(r => setTimeout(r, 3000));
+          } while (status.data.status.status === 'Processing');
+   
+          if (status.data.status.status === 'Pending') {
+            const approveResponse = await fetch(
+              `${process.env.VERIFY_API_URL}/certificates/approve?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}&approved=true`,
+              {
+                method: 'POST',
+                headers: { 'x-api-key': process.env.CERT_API_KEY! }
+              }
+            );
+            const approved = await approveResponse.json() as any;
+
+            const downloadResponse = await fetch(
+              `${process.env.VERIFY_API_URL}/download?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`,
+              {
+                headers: { 'x-api-key': process.env.CERT_API_KEY! }
+              }
+            );
+            const downloadData = await downloadResponse.json() as any;
+         
+            // Download image
+            const imageResponse = await fetch(downloadData.data);
+            const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+            
+            await this.scraper.sendTweet(
+              `Certificate created and approved!\nTransaction: ${approved.data.txnHash}\nToken ID: ${approved.data.tokenId}\nContract: ${approved.data.contractAddress}\nMetadata: ${approved.data.metadataUri}`,
+              tweet.id,
+              [{ data: imageBuffer, mediaType: 'image/jpg' }]
+            );
+          }
+        } catch (error) {
+          await this.scraper.sendTweet(`Error creating certificate: ${error.message}`, tweet.id);
         }
       }
     }
