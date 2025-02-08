@@ -22,4 +22,20 @@ const handlePostCollabLand = async (_req: Request, res: Response) => {
 
 router.get("/collabland", checkNodeEnv, handlePostCollabLand);
 
+router.post("/chat", (_req: Request, res: Response) => {
+  try {
+   const message = _req.query.message;
+   console.log('message',message);
+    res.json({
+      success: true,
+      message: "got message successful",
+    });
+  } catch (error) {
+    console.error("[chat mesages] Error:", error);
+    res.status(400).json({
+      success: false,
+      error: "Error sendign message",
+    });
+  }
+})
 export default router;

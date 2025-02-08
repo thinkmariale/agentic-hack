@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaUser } from "react-icons/fa";
 import { FaCirclePlus, FaUserAstronaut } from "react-icons/fa6";
@@ -6,7 +7,7 @@ import { MdCancel } from "react-icons/md";
 import styles from "./chatBox.module.css"
 
 interface ChatBoxProps {
-    onSendMessage: (message: string, image?: File) => Promise<{ success: boolean, message?: string }>;
+    onSendMessage: (message: string, image?: File) => Promise<{ success: boolean, message: string }>;
 }
 
 type ChatBoxUser = 'agent' | 'user';

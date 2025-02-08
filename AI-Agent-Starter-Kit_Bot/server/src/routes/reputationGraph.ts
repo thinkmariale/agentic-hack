@@ -1,25 +1,10 @@
 import { Router, Request, Response } from "express";
-
-// import { parseEther, toBeHex } from "ethers";
 import { ethers } from "ethers";
 import { Tweet } from "agent-twitter-client";
-
 import { ReportedPost, CopyrightInfringementUser} from "../contracts/types/index.js";
-// import { ethers,Wallet } from "ethers";
 import  {ReputationContractService} from "../services/reputationContract.service.js"
-// rpcUrl=
+
 const router = Router();
-// const states = new Set<string>();
-
-// const getSigner = () => {
-//   // localhost wallet
-//   console.log("getSigner")
-//   const wallet = new Wallet("0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e");
-//   //rpcUrl
-//   const url = 'http://127.0.0.1:8545/';
-
-//   return wallet.connect(new ethers.JsonRpcProvider(url));
-// }
 
 router.post("/add", async (_req: Request, res: Response) => {
   // get the tweet object from the body

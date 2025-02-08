@@ -135,7 +135,7 @@ export function ReputationGraph() {
         {isLoading ? "Connecting..." : "Add Infringer"}
       </Button>
 
-      <div style={{ width: "1200px" }}>
+      {/* <div style={{ width: "1200px" }}>
 
           {reputations && (
               <DataTable title='Users' columns={reputationGraphColumnDefs} data={reputations?.copyrightInfringementUsers} />
@@ -143,7 +143,7 @@ export function ReputationGraph() {
           {posts && (
               <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts?.reportedPosts} />
           )}
-        </div>
+        </div> */}
     </div>
   );
 }

@@ -18,6 +18,7 @@ export default function HelloWorld() {
     !!process.env.NEXT_PUBLIC_API_URL
   );
   const [data, setData] = useState<any>(null);
+  const [messageResponse, setMessageResponse] = useState<string>('');
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -34,10 +35,30 @@ export default function HelloWorld() {
   }, [isConfigured]);
 
   const onSendMessage = useCallback(async (message: string, file?: File) => {
-    return {
-      success: true,
-      message: "This is a test response",
+    try {
+      const response = await fetch(`/api/hello/chat`, {
+        method: "POST",
+        body: JSON.stringify({ message }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log('response',response);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setMessageResponse(data)
+     
+      return data
+    } catch (error) {
+      console.error(error);
+      return {
+        success: false,
+        message: "Failed to send message",
+      }
     }
+   
   }, []);
 
   return (
