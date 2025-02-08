@@ -5,7 +5,7 @@ import {
     ColGroupDef,
     ValueFormatterParams
 } from "@ag-grid-community/core";
-import './Table.scss';
+import './table.css';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-quartz.css';
 import styles from './grid.module.css'
