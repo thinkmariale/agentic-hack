@@ -1,23 +1,13 @@
 import React from "react";
-import { AgGridReact } from 'ag-grid-react';
-import {
-    ColDef,
-    ColGroupDef,
-    ValueFormatterParams
-} from "@ag-grid-community/core";
-import './table.css';
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-quartz.css';
-import styles from './grid.module.css'
-
+import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import styles from "./grid.module.css";
 
 export interface TableColumn {
     title: string;
     id: string;
-    type?: "string" | "number" | "boolean" | "date",
+    type?: "string" | "number" | "boolean" | "date";
     width?: number;
-    customRenderer?: React.FC<any>,
-    valueFormatter?: (params: ValueFormatterParams) => string | null;
+    customRenderer?: React.FC<any>;
 }
 
 export interface TableRowData {
@@ -26,7 +16,7 @@ export interface TableRowData {
 
 interface TableProps {
     columns: TableColumn[];
-    data: any[];
+    data: TableRowData[];
     withFiltering?: boolean;
     title?: string;
     height?: string | number;
@@ -34,27 +24,43 @@ interface TableProps {
     rowHeight?: number;
 }
 
-export const DataTable: React.FC<TableProps> = ({ columns, data, getRowStyle, height, rowHeight, title, withFiltering }) => {
+export const DataTable: React.FC<TableProps> = ({
+    columns,
+    data,
+    title,
+    height = 500,
+    rowHeight = 52, // MUI default row height
+}) => {
+    // Convert TableColumn to MUI GridColDef
+    const columnDefs: GridColDef[] = columns.map((col) => ({
+        field: col.id,
+        headerName: col.title,
+        width: col.width || 110,
+        renderCell: col.customRenderer
+            ? (params) => col.customRenderer?.(params)
+            : undefined,
+        filterable: !!col.type, // Enable filtering if a type exists
+    }));
 
-    const columnDefs: ColDef[] | ColGroupDef[] = columns.map(x => ({
-        field: x.id,
-        headerName: x.title,
-        filter: withFiltering ? (x.type === "number" ? "agNumberColumnFilter" : "agTextColumnFilter") : false,
-        minWidth: x.width,
-        floatingFilter: withFiltering && x.type === "number" ? true : false,
-        cellRenderer: x.customRenderer,
-        valueFormatter: x.valueFormatter
-    })) as ColDef[]
+    // Ensure each row has a unique `id` for DataGrid
+    const rowData = data?.map((row, index) => ({
+        id: row.id ?? index, // Use existing id or fallback to index
+        ...row,
+    }));
 
     return (
         <div className={styles.gridContainer}>
-            {!!title && <span style={{
-                fontWeight: 600,
-                fontSize: 26,
-            }}>{title}</span>}
-            <div className="ag-theme-quartz" style={{ height: height ?? 500 }}>
-                <AgGridReact rowData={data} columnDefs={columnDefs as any} rowHeight={rowHeight} defaultColDef={{ flex: 1 }} getRowStyle={getRowStyle} suppressRowClickSelection suppressMovableColumns />
+            {!!title && (
+                <span style={{ fontWeight: 600, fontSize: 26 }}>{title}</span>
+            )}
+            <div style={{ height: typeof height === "number" ? `${height}px` : height, width: "100%", flex: 1 }}>
+                <DataGrid
+                    rows={rowData}
+                    columns={columnDefs}
+                    pageSizeOptions={[5, 10, 20]}
+                    rowHeight={rowHeight}
+                />
             </div>
         </div>
-    )
-}
+    );
+};

@@ -2,26 +2,33 @@
 import React, { useEffect, useMemo } from 'react'
 
 import { Button } from "@/components/ui/button";
-import {  useState } from "react";
+import { useState } from "react";
 import { GetReputationsDocument, GetPostsDocument, execute } from '../../.graphclient';
 import { DataTable, TableColumn } from '@/components/ui/grid/grid';
 
 export function ReputationGraph() {
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = React.useState(false);
   const [reputations, setReputations] = React.useState<GetReputationsDocument>()
   const [posts, setPosts] = React.useState<GetPostsDocument>()
 
   function callUsersGraph() {
     execute(GetReputationsDocument, {}).then((result: { data: any; }) => {
-      setReputations(result?.data)
+      console.log('result', result)
+      setReputations(result?.data?.reputationTypes)
     })
   }
 
   function callPostsGraph() {
     execute(GetPostsDocument, {}).then((result: { data: any; }) => {
-      setPosts(result?.data)
+      console.log('result', result)
+      setPosts(result?.data?.reportedPostTypes)
     })
   }
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     callUsersGraph()
@@ -125,7 +132,7 @@ export function ReputationGraph() {
   ], [])
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" style={{ width: "100%" }}>
       <Button
         type="button"
         onClick={handleAddInfringerSubgraph}
@@ -135,15 +142,11 @@ export function ReputationGraph() {
         {isLoading ? "Connecting..." : "Add Infringer"}
       </Button>
 
-      {/* <div style={{ width: "1200px" }}>
-
-          {reputations && (
-              <DataTable title='Users' columns={reputationGraphColumnDefs} data={reputations?.copyrightInfringementUsers} />
-          )}
-          {posts && (
-              <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts?.reportedPosts} />
-          )}
-        </div> */}
+      {mounted &&
+        <div style={{ width: "100%" }} >
+          <DataTable title='Users' columns={reputationGraphColumnDefs} data={reputations} />
+          {/* <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts?.reportedPosts} /> */}
+        </div>}
     </div>
   );
 }
