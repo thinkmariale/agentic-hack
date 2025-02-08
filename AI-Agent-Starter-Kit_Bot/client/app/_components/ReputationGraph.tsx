@@ -1,22 +1,29 @@
 "use client";
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 
 import { Button } from "@/components/ui/button";
 import {  useState } from "react";
 import { GetReputationsDocument, GetPostsDocument, execute } from '../../.graphclient';
+import { DataTable, TableColumn } from '@/components/ui/grid/grid';
 
 export function ReputationGraph() {
   const [isLoading, setIsLoading] = useState(false);
   const [reputations, setReputations] = React.useState<GetReputationsDocument>()
   const [posts, setPosts] = React.useState<GetPostsDocument>()
 
-  function callGraph() {
+  function callUsersGraph() {
     execute(GetReputationsDocument, {}).then((result: { data: any; }) => {
       setReputations(result?.data)
     })
   }
+
+  function callPostsGraph() {
+    execute(GetPostsDocument, {}).then((result: { data: any; }) => {
+      setPosts(result?.data)
+    })
+  }
   useEffect(() => {
-    callGraph()
+    callUsersGraph()
   }, [setReputations])
 
   const handleAddInfringerSubgraph = async (e: React.MouseEvent) => {
@@ -40,13 +47,80 @@ export function ReputationGraph() {
       console.log(data);
       alert("Added successfully")
       setIsLoading(false);
-      callGraph()
+      callUsersGraph()
       // sessionStorage.setItem("github_redirect_url", window.location.href);
       // window.location.href = data.authUrl;
     } catch (error: unknown) {
       setIsLoading(false);
     }
   };
+
+  const reputationGraphColumnDefs: TableColumn[] = useMemo(() => [
+    {
+      title: 'User ID',
+      id: 'userId',
+    },
+    {
+      title: 'Reputation Score',
+      id: 'reputationScore',
+    },
+    {
+      title: 'Post Count',
+      id: 'postCount',
+    },
+    {
+      title: 'Platform',
+      id: 'platform',
+    },
+    {
+      title: 'Offense Count',
+      id: 'offenseCount',
+    },
+    {
+      title: 'Last Offense Timestamp',
+      id: 'lastOffenseTimestamp',
+    },
+    {
+      title: 'First Offense Timestamp',
+      id: 'firstOffenseTimestamp',
+    },
+    {
+      title: 'Username',
+      id: 'username',
+    },
+  ], [])
+
+
+  const postsColumnDefs: TableColumn[] = useMemo(() => [
+    {
+      title: 'User ID',
+      id: 'userId',
+    },
+    {
+      title: 'Record ID',
+      id: 'recordId',
+    },
+    {
+      title: 'Severity Score',
+      id: 'severityScore',
+    },
+    {
+      title: 'Derived Context',
+      id: 'derivedContext',
+    },
+    {
+      title: 'Derived Context Explanation',
+      id: 'derivedContextExplanation',
+    },
+    {
+      title: 'Post Text',
+      id: 'postText',
+    },
+    {
+      title: 'Post URL',
+      id: 'postUrl',
+    },
+  ], [])
 
   return (
     <div className="flex flex-col">
@@ -62,11 +136,10 @@ export function ReputationGraph() {
       <div style={{ width: "1200px" }}>
 
           {reputations && (
-            <form>
-              <label>CopyrightInfringementUser</label>
-              <br />
-              <textarea style={{ width: "100%" }} value={JSON.stringify(reputations, null, 2)} readOnly rows={25} />
-            </form>
+              <DataTable title='Users' columns={reputationGraphColumnDefs} data={reputations?.copyrightInfringementUsers} />
+          )}
+          {posts && (
+              <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts?.reportedPosts} />
           )}
         </div>
     </div>
