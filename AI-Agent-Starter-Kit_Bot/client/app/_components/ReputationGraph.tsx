@@ -143,9 +143,16 @@ export function ReputationGraph() {
       </Button>
 
       {mounted &&
-        <div style={{ width: "100%" }} >
+        <div style={{ 
+            padding: "30px 0 45px", 
+            display: "flex", 
+            flexDirection: "column", 
+            width: "100%", 
+            gap: "40px" 
+            }}
+          >
           <DataTable title='Users' columns={reputationGraphColumnDefs} data={reputations} />
-          {/* <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts?.reportedPosts} /> */}
+          <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts} />
         </div>}
     </div>
   );
