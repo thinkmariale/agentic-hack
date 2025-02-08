@@ -15,9 +15,6 @@ export function ReputationGraph() {
     execute(GetReputationsDocument, {}).then((result: { data: any; }) => {
       setReputations(result?.data)
     })
-    execute(GetPostsDocument, {}).then((result: { data: any; }) => {
-      setPosts(result?.data)
-    })
   }
 
   function callPostsGraph() {
@@ -27,7 +24,8 @@ export function ReputationGraph() {
   }
   useEffect(() => {
     callUsersGraph()
-  }, [setReputations])
+    callPostsGraph()
+  }, [setReputations, setPosts])
 
   const handleAddInfringerSubgraph = async (e: React.MouseEvent) => {
     console.log('handleAddInfringerSubgraph')
