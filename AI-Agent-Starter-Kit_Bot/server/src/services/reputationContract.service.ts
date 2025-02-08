@@ -47,11 +47,11 @@ export class ReputationContractService extends BaseService{
       return { severityScore, context, explanation };
   }
 
-  private async generateUserReputationScore(userId: string): Promise<{ score: number, posts: ReportedPost[] } | null> {
+  private async generateUserReputationScore(userId: string): Promise<{ score: number, posts: ReportedPost[] }> {
     const algorithmService = ReputationAlgorithmService.getInstance();
     const user = await this.getCopyrightInfringementUser(userId);
     if (!user) {
-      return null;
+      return { score: 0, posts: [] };
     }
 
     const posts = await this.getUsersPosts(userId);

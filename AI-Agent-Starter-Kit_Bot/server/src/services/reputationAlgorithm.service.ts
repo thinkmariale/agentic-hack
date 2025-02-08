@@ -4,14 +4,17 @@ import {
     OffenseContextScore,
     OffenseScoreWeights, 
     PostContextResponse } from "..//contracts/types/ReputationAlgorithm.js";
+import { BaseElizaService } from "./baseEliza.service.js";
 
 export class ReputationAlgorithmService {
     private static instance: ReputationAlgorithmService;
+    private eliza: BaseElizaService;
     private prompt: string;
-    private gaiaUrl: string;
+    // private gaiaUrl: string;
 
     constructor() {
-        this.gaiaUrl = "https://0x58598ed2556a25062e011b23c93118ee645fd0a6.gaia.domains/v1/chat/completions";
+        // this.gaiaUrl = "https://0x58598ed2556a25062e011b23c93118ee645fd0a6.gaia.domains/v1/chat/completions";
+        this.eliza = BaseElizaService.getInstance();
         this.prompt = `
                 Your Task: Analyze the intent behind a Twitter post to classify whether the user is plagiarizing digital content, misattributing it, or following fair use principles.
 
@@ -189,25 +192,27 @@ export class ReputationAlgorithmService {
             }
         ]
 
-        const body = {
-            messages
-        }
-
         try {
-            const agentResponse = await fetch(this.gaiaUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                },
-                body: JSON.stringify(body),
-            });
+            const responseText = await this.eliza.processMessage(JSON.stringify(messages));
+            // const agentResponse = await fetch(this.gaiaUrl, {
+            //     method: "POST",
+            //     headers: {
+            //         "Content-Type": "application/json",
+            //         "Accept": "application/json",
+            //     },
+            //     body: JSON.stringify(body),
+            // });
 
-            if (!agentResponse.ok) {
-                throw new Error(`Error generating post context: ${agentResponse.statusText}`);
+            // if (!agentResponse.ok) {
+            //     throw new Error(`Error generating post context: ${agentResponse.statusText}`);
+            // }
+            // const context = await agentResponse.json() as PostContextResponse;
+
+            if (!responseText) {
+                throw new Error(`Error generating post context: No response from agent`);
             }
 
-            const context = await agentResponse.json() as PostContextResponse;
+            const context = JSON.parse(responseText) as PostContextResponse;
             return context;
         } catch (error) {
             console.error("Error generating post context:", error);
