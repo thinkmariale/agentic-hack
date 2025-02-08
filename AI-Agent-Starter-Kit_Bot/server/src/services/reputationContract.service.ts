@@ -9,9 +9,10 @@ export class ReputationContractService {
   private contract: ethers.Contract | null = null;
 
   private constructor() {
-    const url = 'http://127.0.0.1:8545/';
-    const wallet = new Wallet("0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e");
-    this.signer = wallet.connect(new ethers.JsonRpcProvider(url));
+    // const RPC_URL = 'http://127.0.0.1:8545/';
+    const RPC_URL=process.env.RPC_URL ?? "http://127.0.0.1:8545/";
+    const wallet = new Wallet(process.env.WALLET_KEY!);
+    this.signer = wallet.connect(new ethers.JsonRpcProvider(RPC_URL));
 
     this.contract = ReputationAgent__factory.connect(this.signer);
   }
@@ -23,12 +24,13 @@ export class ReputationContractService {
     return ReputationContractService.instance;
   }
 
-  public async addInfringement(infringeUser: CopyrightInfringementUser, post:ReportedPost, offender:boolean): Promise<boolean> {
+  public async addInfringement(infringeUser: CopyrightInfringementUser, post:ReportedPost): Promise<boolean> {
     try {
       if(!this.contract){
         return false;
       }
-      const result = await this.contract.AddInfringement(infringeUser,post, offender);
+      console.log("infringeUser",infringeUser)
+      const result = await this.contract.AddInfringement(infringeUser,post );
       console.log(result)
       return true
     } catch (error) {
@@ -56,7 +58,7 @@ export class ReputationContractService {
       if(!this.contract){
         return false;
       }
-      const result = await this.contract.UpdateInfringement(userId,reputationScore, fistOffenseTimestamp, lastOffenseTimestamp, postCount, offenseCount);
+      const result = await this.contract.UpdateCopyrightInfringementUser(userId,reputationScore, fistOffenseTimestamp, lastOffenseTimestamp, postCount, offenseCount);
       console.log(result)
       return true
     } catch (error) {
@@ -69,7 +71,7 @@ export class ReputationContractService {
       if(!this.contract){
         return null;
       }
-      const result:ReportedPost = await this.contract.GetReputationScore(contentHash);
+      const result:ReportedPost = await this.contract.GetReportedPost(contentHash);
       console.log(result)
       if(result.contentHash == ''){
         return null
@@ -102,15 +104,8 @@ export class ReputationContractService {
       if(!this.contract){
         return -1;
       }
-    // const contract = new ethers.Contract(
-    //   "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
-    //   [
-    //     "function GetReputationScore(address user) public view returns (uint256)",
-    //   ],
-    //   this.signer
-    // );
-    const score = await this.contract.GetReputationScore(userId);
-    return score.toNumber();
+      const score = await this.contract.GetReputationScore(userId);
+      return score
    
     } catch (error) {
       console.log("Error (getReputationScore):", error);

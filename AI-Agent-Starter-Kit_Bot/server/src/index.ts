@@ -6,7 +6,7 @@ import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { NgrokService } from "./services/ngrok.service.js";
-import { TelegramService } from "./services/telegram.service.js";
+// import { TelegramService } from "./services/telegram.service.js";
 import { IService } from "./services/base.service.js";
 import twitterRouter from "./routes/twitter.js";
 import reputationGraphRouter from "./routes/reputationGraph.js";
@@ -43,10 +43,10 @@ app.use(cookieParser());
 app.use("/hello", helloRouter);
 
 // Initialize Telegram bot service
-const telegramService = TelegramService.getInstance();
+// const telegramService = TelegramService.getInstance();
 
-// Mount Telegram webhook endpoint
-app.use("/telegram/webhook", telegramService.getWebhookCallback());
+// // Mount Telegram webhook endpoint
+// app.use("/telegram/webhook", telegramService.getWebhookCallback());
 
 // Mount Twitter OAuth routes
 app.use("/auth/twitter", twitterRouter);
@@ -102,12 +102,12 @@ app.listen(port, async () => {
     console.log("NGROK URL:", ngrokUrl);
 
     // Initialize Telegram bot and set webhook
-    await telegramService.start();
-    await telegramService.setWebhook(ngrokUrl);
-    services.push(telegramService);
+    // await telegramService.start();
+    // await telegramService.setWebhook(ngrokUrl);
+    // services.push(telegramService);
 
-    const botInfo = await telegramService.getBotInfo();
-    console.log("Telegram Bot URL:", `https://t.me/${botInfo.username}`);
+    // const botInfo = await telegramService.getBotInfo();
+    // console.log("Telegram Bot URL:", `https://t.me/${botInfo.username}`);
   } catch (e) {
     console.error("Failed to start server:", e);
     process.exit(1);

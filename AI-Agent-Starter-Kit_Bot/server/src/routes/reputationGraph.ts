@@ -21,29 +21,30 @@ router.post("/add", async (_req: Request, res: Response) => {
   try {
     // TODO: Ron here to add to subgraph
     const curTime = new Date().getTime()
+  
     const cp: CopyrightInfringementUser ={
       userId: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
       platform: "twitter",
       username: "username",
-      offenseCount: 1,
       postCount: 1,
+      offenseCount: 1,
       firstOffenseTimestamp:curTime,
       lastOffenseTimestamp: curTime,
       reputationScore: 1,
     };
 
     const post: ReportedPost = {
-      recordId: "0x21",
+      recordId: "0x5fbdb2315678afecb367f032d93f642f64180aa5",
       userId: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
       contentHash: "0x214444331",
       postText: "postText",
       postUrl: "postUrl",
       timestamp: curTime,
-      severityScore: 1,
       derivedContext: "plagiarism",
-      derivedContextExplanation:"something"
+      derivedContextExplanation:"something",
+      severityScore: 1,
     }
-    console.log("HERE", curTime)
+    console.log("HERE", curTime,cp,post)
     const repService = ReputationContractService.getInstance();
     // const signer = getSigner();
     // const contract = ReputationAgent__factory.connect(signer);
@@ -52,9 +53,9 @@ router.post("/add", async (_req: Request, res: Response) => {
     // // @ts-ignore
     // const resultInfr = await contract.AddInfringement(cp, post, true);
     // const result = await contract.GetReputationScore("0x5fbdb2315678afecb367f032d93f642f64180aa3");
-    const resultInfr = await repService.addInfringement(cp, post, true);
+    const resultInfr = await repService.addInfringement(cp, post);
     const result = await repService.getReputationScore("0x5fbdb2315678afecb367f032d93f642f64180aa3");
-    console.log(resultInfr)
+     console.log(resultInfr)
     console.log('result',result);
     res.json({ message:"hello form back" });
   } catch (error) {

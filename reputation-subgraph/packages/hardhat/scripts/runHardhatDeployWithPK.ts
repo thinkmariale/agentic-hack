@@ -26,18 +26,21 @@ async function main() {
     return;
   }
 
-  const encryptedKey = process.env.DEPLOYER_PRIVATE_KEY_ENCRYPTED;
+  // const encryptedKey = process.env.DEPLOYER_PRIVATE_KEY_ENCRYPTED;
 
-  if (!encryptedKey) {
-    console.log("🚫️ You don't have a deployer account. Run `yarn generate` or `yarn account:import` first");
-    return;
-  }
+  // if (!encryptedKey) {
+  //   console.log("🚫️ You don't have a deployer account. Run `yarn generate` or `yarn account:import` first");
+  //   return;
+  // }
 
-  const pass = await password({ message: "Enter password to decrypt private key:" });
+  // const pass = await password({ message: "Enter password to decrypt private key:" });
 
   try {
-    const wallet = await Wallet.fromEncryptedJson(encryptedKey, pass);
-    process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY = wallet.privateKey;
+   // const wallet = await Wallet.fromEncryptedJson(encryptedKey, pass);
+    //process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY = wallet.privateKey;
+    process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY = process.env.WALLET_KEY
+    console.log("Wallet private key:", process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY);
+    console.log('🚀 Deploying...', networkName);
 
     const hardhat = spawn("hardhat", ["deploy", ...process.argv.slice(2)], {
       stdio: "inherit",

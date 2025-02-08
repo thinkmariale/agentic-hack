@@ -1,11 +1,23 @@
 "use client";
+import React, { useEffect } from 'react'
 
 import { Button } from "@/components/ui/button";
 import {  useState } from "react";
+import { GetReputationsDocument, GetPostsDocument, execute } from '../../.graphclient';
 
 export function ReputationGraph() {
   const [isLoading, setIsLoading] = useState(false);
+  const [reputations, setReputations] = React.useState<GetReputationsDocument>()
+  const [posts, setPosts] = React.useState<GetPostsDocument>()
 
+  function callGraph() {
+    execute(GetReputationsDocument, {}).then((result: { data: any; }) => {
+      setReputations(result?.data)
+    })
+  }
+  useEffect(() => {
+    callGraph()
+  }, [setReputations])
 
   const handleAddInfringerSubgraph = async (e: React.MouseEvent) => {
     console.log('handleAddInfringerSubgraph')
@@ -28,6 +40,7 @@ export function ReputationGraph() {
       console.log(data);
       alert("Added successfully")
       setIsLoading(false);
+      callGraph()
       // sessionStorage.setItem("github_redirect_url", window.location.href);
       // window.location.href = data.authUrl;
     } catch (error: unknown) {
@@ -36,7 +49,7 @@ export function ReputationGraph() {
   };
 
   return (
-    <div className="flex items-center justify-center w-full my-4">
+    <div className="flex flex-col">
       <Button
         type="button"
         onClick={handleAddInfringerSubgraph}
@@ -45,6 +58,17 @@ export function ReputationGraph() {
       >
         {isLoading ? "Connecting..." : "Add Infringer"}
       </Button>
+
+      <div style={{ width: "1200px" }}>
+
+          {reputations && (
+            <form>
+              <label>CopyrightInfringementUser</label>
+              <br />
+              <textarea style={{ width: "100%" }} value={JSON.stringify(reputations, null, 2)} readOnly rows={25} />
+            </form>
+          )}
+        </div>
     </div>
   );
 }

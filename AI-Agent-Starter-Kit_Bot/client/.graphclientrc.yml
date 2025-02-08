@@ -1,0 +1,9 @@
+# .graphclientrc.yml
+sources:
+  - name: ReputationAgent
+    handler:
+      graphql:
+        endpoint: https://api.studio.thegraph.com/query/103698/ip-reputationagent/version/latest
+documents:
+  - ./graphql/GetReputations.gql
+  - ./graphql/GetPosts.gql

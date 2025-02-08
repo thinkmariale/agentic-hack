@@ -25,6 +25,7 @@ const wallets = [
     : []),
 ];
 
+
 /**
  * wagmi connectors for the wagmi context
  */
