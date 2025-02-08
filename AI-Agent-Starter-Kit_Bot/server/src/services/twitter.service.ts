@@ -71,13 +71,10 @@ export class TwitterService extends BaseService {
     if (!this.scraper) throw new Error("Twitter service not started");
     console.log("waiting for X mentions ... ");
 
-    // const results = await this.scraper.fetchSearchTweets(`#mentaportxapp`, 20, SearchMode.Top);
-
-    // console.log('search tweet results', results)
     // Set up tweet stream for mentions
-    console.log(`@${this.me?.username}`);
+    console.log(`#${this.me?.username}`);
     const tweetStream = await this.scraper.searchTweets(
-      `#mentaportxapp`,
+      `#ipdefenderagent`,
       10,
       SearchMode.Latest
     );

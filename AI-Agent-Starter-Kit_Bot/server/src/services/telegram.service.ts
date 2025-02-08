@@ -6,16 +6,12 @@ import {
   CertificateParams,
   createCertificate,
   getCollablandApiUrl,
-  getTokenMetadataPath,
-  MintResponse,
   pollVerificationStatus,
-  TokenMetadata,
   VerificationResult,
   verifyContent,
 } from "../utils.js";
 import fs from "fs";
-import axios, { AxiosResponse, isAxiosError } from "axios";
-import { parse as jsoncParse } from "jsonc-parser";
+import axios, { isAxiosError } from "axios";
 import path, { resolve } from "path";
 import { keccak256, getBytes, toUtf8Bytes } from "ethers";
 import { TwitterService } from "./twitter.service.js";
@@ -41,7 +37,7 @@ export class TelegramService extends BaseService {
   private bot: Bot;
   private webhookUrl: string;
   private elizaService: ElizaService;
-  private nGrokService: NgrokService;
+  public nGrokService: NgrokService;
   private twitterService?: TwitterService;
 
   private constructor(webhookUrl?: string) {
@@ -123,109 +119,6 @@ export class TelegramService extends BaseService {
         );
       }
 
-      this.bot.command("mint", async (ctx) => {
-        try {
-          ctx.reply("Minting your token...");
-          const tokenPath = getTokenMetadataPath();
-          const tokenInfo = jsoncParse(
-            fs.readFileSync(tokenPath, "utf8")
-          ) as TokenMetadata;
-          console.log("TokenInfoToMint", tokenInfo);
-          console.log("Hitting Collab.Land APIs to mint token...");
-          const { data: _tokenData } = await client.post<
-            AnyType,
-            AxiosResponse<MintResponse>
-          >(`/telegrambot/evm/mint?chainId=8453`, {
-            name: tokenInfo.name,
-            symbol: tokenInfo.symbol,
-            metadata: {
-              description: tokenInfo.description ?? "",
-              website_link: tokenInfo.websiteLink ?? "",
-              twitter: tokenInfo.twitter ?? "",
-              discord: tokenInfo.discord ?? "",
-              telegram: tokenInfo.telegram ?? "",
-              media: tokenInfo.image ?? "",
-              nsfw: tokenInfo.nsfw ?? false,
-            },
-          });
-          console.log("Mint response from Collab.Land:");
-          console.dir(_tokenData, { depth: null });
-          const tokenData = _tokenData.response.contract.fungible;
-          await ctx.reply(
-            `Your token has been minted on wow.xyz 🥳
-Token details:
-<pre><code class="language-json">${JSON.stringify(tokenData, null, 2)}</code></pre>
-
-You can view the token page below (it takes a few minutes to be visible)`,
-            {
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    {
-                      text: "View Wow.xyz Token Page",
-                      url: `https://wow.xyz/${tokenData.address}`,
-                    },
-                  ],
-                ],
-              },
-              parse_mode: "HTML",
-            }
-          );
-          if (this.twitterService) {
-            const twitterBotInfo = this.twitterService.me;
-            const twitterClient = this.twitterService.getScraper();
-            const ngrokURL = this.nGrokService.getUrl();
-            await ctx.reply(
-              `🐦 Posting a tweet about the new token...\n\n` +
-                `Twitter account details:\n<pre lang="json"><code>${JSON.stringify(
-                  twitterBotInfo,
-                  null,
-                  2
-                )}</code></pre>`,
-              {
-                parse_mode: "HTML",
-              }
-            );
-            const claimURL = `${process.env.NEXT_PUBLIC_HOSTNAME}/claim/${tokenData.address}`;
-            const botUsername = twitterBotInfo?.username;
-            console.log("botUsername:", botUsername);
-            console.log("claimURL:", claimURL);
-            const slug =
-              Buffer.from(claimURL).toString("base64url") +
-              ":" +
-              Buffer.from(botUsername!).toString("base64url");
-            console.log("slug:", slug);
-            const cardURL = `${ngrokURL}/auth/twitter/card/${slug}/index.html`;
-            console.log("cardURL:", cardURL);
-            const twtRes = await twitterClient.sendTweet(
-              `I just minted a token on Base using Wow!\nThe ticker is $${tokenData.symbol}\nClaim early alpha here: ${cardURL}`
-            );
-            if (twtRes.ok) {
-              const tweetId = (await twtRes.json()) as AnyType;
-              console.log("Tweet posted successfully:", tweetId);
-              const tweetURL = `https://twitter.com/${twitterBotInfo?.username}/status/${tweetId?.data?.create_tweet?.tweet_results?.result?.rest_id}`;
-              console.log("Tweet URL:", tweetURL);
-              await ctx.reply(
-                `Tweet posted successfully!\n\n` +
-                  `🎉 Tweet details: ${tweetURL}`,
-                {
-                  parse_mode: "HTML",
-                }
-              );
-            } else {
-              console.error("Failed to post tweet:", await twtRes.json());
-              await ctx.reply("Failed to post tweet");
-            }
-          }
-        } catch (error) {
-          if (isAxiosError(error)) {
-            console.error("Failed to mint token:", error.response?.data);
-          } else {
-            console.error("Failed to mint token:", error);
-          }
-          ctx.reply("Failed to mint token");
-        }
-      });
       this.bot.command("lit", async (ctx) => {
         try {
           const action = ctx.match;
