@@ -1,6 +1,6 @@
 
-import { ethers,Wallet } from "ethers";
-import { ReputationAgent__factory,ReportedPost, CopyrightInfringementUser} from "../contracts/types/index.js";
+import { ethers, Wallet } from "ethers";
+import { ReputationAgent__factory, ReportedPost, CopyrightInfringementUser } from "../contracts/types/index.js";
 
 
 export class ReputationContractService {
@@ -23,12 +23,12 @@ export class ReputationContractService {
     return ReputationContractService.instance;
   }
 
-  public async addInfringement(infringeUser: CopyrightInfringementUser, post:ReportedPost, offender:boolean): Promise<boolean> {
+  public async addInfringement(infringeUser: CopyrightInfringementUser, post: ReportedPost, offender: boolean): Promise<boolean> {
     try {
-      if(!this.contract){
+      if (!this.contract) {
         return false;
       }
-      const result = await this.contract.AddInfringement(infringeUser,post, offender);
+      const result = await this.contract.AddInfringement(infringeUser, post, offender);
       console.log(result)
       return true
     } catch (error) {
@@ -37,12 +37,12 @@ export class ReputationContractService {
     }
   }
 
-  public async updateReportedPost(recordId:string, severityScore:number, derivedContext:string, derivedContextExplanatio:string): Promise<boolean> {
+  public async updateReportedPost(recordId: string, severityScore: number, derivedContext: string, derivedContextExplanatio: string): Promise<boolean> {
     try {
-      if(!this.contract){
+      if (!this.contract) {
         return false;
       }
-      const result = await this.contract.UpdatePost(recordId,severityScore, derivedContext, derivedContextExplanatio);
+      const result = await this.contract.UpdatePost(recordId, severityScore, derivedContext, derivedContextExplanatio);
       console.log(result)
       return true
     } catch (error) {
@@ -51,12 +51,12 @@ export class ReputationContractService {
     }
   }
 
-  public async updateCopyrightInfringementUser(userId:string, reputationScore:number, fistOffenseTimestamp:number, lastOffenseTimestamp:number, postCount?:number, offenseCount?:number): Promise<boolean> {
+  public async updateCopyrightInfringementUser(userId: string, reputationScore: number, fistOffenseTimestamp: number, lastOffenseTimestamp: number, postCount?: number, offenseCount?: number): Promise<boolean> {
     try {
-      if(!this.contract){
+      if (!this.contract) {
         return false;
       }
-      const result = await this.contract.UpdateInfringement(userId,reputationScore, fistOffenseTimestamp, lastOffenseTimestamp, postCount, offenseCount);
+      const result = await this.contract.UpdateInfringement(userId, reputationScore, fistOffenseTimestamp, lastOffenseTimestamp, postCount, offenseCount);
       console.log(result)
       return true
     } catch (error) {
@@ -64,14 +64,14 @@ export class ReputationContractService {
       return false;
     }
   }
-  public async getReportedPost(contentHash:string): Promise<ReportedPost | null> {
+  public async getReportedPost(contentHash: string): Promise<ReportedPost | null> {
     try {
-      if(!this.contract){
+      if (!this.contract) {
         return null;
       }
-      const result:ReportedPost = await this.contract.GetReputationScore(contentHash);
+      const result: ReportedPost = await this.contract.GetReputationScore(contentHash);
       console.log(result)
-      if(result.contentHash == ''){
+      if (result.contentHash == '') {
         return null
       }
       return result;
@@ -80,14 +80,14 @@ export class ReputationContractService {
       return null;
     }
   }
-  public async getCopyrightInfringementUser(userId:string): Promise<CopyrightInfringementUser | null> {
+  public async getCopyrightInfringementUser(userId: string): Promise<CopyrightInfringementUser | null> {
     try {
-      if(!this.contract){
+      if (!this.contract) {
         return null;
       }
-      const result:CopyrightInfringementUser = await this.contract.GetUsers(userId);
+      const result: CopyrightInfringementUser = await this.contract.GetUsers(userId);
       console.log(result)
-      if(result.postCount == 0){
+      if (result.postCount == 0) {
         return null
       }
       return result
@@ -99,19 +99,19 @@ export class ReputationContractService {
 
   public async getReputationScore(userId: string): Promise<number> {
     try {
-      if(!this.contract){
+      if (!this.contract) {
         return -1;
       }
-    // const contract = new ethers.Contract(
-    //   "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
-    //   [
-    //     "function GetReputationScore(address user) public view returns (uint256)",
-    //   ],
-    //   this.signer
-    // );
-    const score = await this.contract.GetReputationScore(userId);
-    return score.toNumber();
-   
+      // const contract = new ethers.Contract(
+      //   "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+      //   [
+      //     "function GetReputationScore(address user) public view returns (uint256)",
+      //   ],
+      //   this.signer
+      // );
+      const score = await this.contract.GetReputationScore(userId);
+      return score.toNumber();
+
     } catch (error) {
       console.log("Error (getReputationScore):", error);
       return -1;
@@ -119,12 +119,12 @@ export class ReputationContractService {
   }
   public async getUsersPosts(userId: string): Promise<ReportedPost[]> {
     try {
-      if(!this.contract) {
+      if (!this.contract) {
         return [];
       }
-    const result = await this.contract.GetPosts(userId);
-    return result;
-   
+      const result = await this.contract.GetPosts(userId);
+      return result;
+
     } catch (error) {
       console.log("Error (getUsersPosts):", error);
       return [];
