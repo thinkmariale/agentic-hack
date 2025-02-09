@@ -293,14 +293,15 @@ export class TelegramService extends BaseService {
               `telegram_${message.message_id}`,
               'na' //`telegram_${ctx.from.id}`
             ) as any;
-            await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
-              parse_mode: "HTML"
-            });
+            // await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
+            //   parse_mode: "HTML"
+            // });
             await ctx.reply(`Verification result: ${JSON.stringify(verifyResult)}`);
-
-            if (verifyResult.status && verifyResult.data.status === "Certified") {
+            console.log("verifyResult", verifyResult)
+            if (verifyResult.status && verifyResult.data.status.status === "Certified") {
               const repService = await ReputationContractService.getInstance();
               console.log("Image is certified");
+              // TODO: userId must be wallet address
               const user: CopyrightInfringementUser = {
                 userId: ctx.from.id.toString(),
                 platform: 'telegram',
@@ -354,7 +355,8 @@ export class TelegramService extends BaseService {
             const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${file.file_path}`;
             
             const fileExtension = fileUrl.split('.').pop() || '';
-
+            console.log('fileUrl',fileUrl)
+            // TODO: username must be wallet address
             const params: CertificateParams = {
               contentFormat: fileExtension,
               name: 'FunkyMint',

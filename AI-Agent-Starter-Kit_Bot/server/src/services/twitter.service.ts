@@ -87,7 +87,7 @@ export class TwitterService extends BaseService {
 
     for await (let tweet of tweetStream) {
       console.log("single tweet");
-      console.log(tweet);
+    //  console.log(tweet);
       if (this.latestTweetId && tweet.id && tweet.id <= this.latestTweetId) continue;
       this.latestTweetId = tweet.id as string;
       console.log("get tweet by Id");
@@ -113,12 +113,13 @@ export class TwitterService extends BaseService {
           console.log("send tweet");
           try {
             let tweetReply = '';
-            if(finalStatus && finalStatus === 'Certified') {
+            if( finalStatus.status === 'Certified') {
               tweetReply = `Certificate found and you can view the ceritifcate transaction at ${finalStatus.data.certificate.txnHash}`
               const { text, permanentUrl, userId, username, timestamp } = tweet;
               const currTime = new Date().getTime();
               const contentHash = ethers.sha256((text || "") + permanentUrl + username + "twitter");
               const recordId = ethers.uuidV4(contentHash);
+             // TODO: userId must be wallet address
               // create new user and new post
               const user: CopyrightInfringementUser = {
                 userId: userId!,
@@ -163,6 +164,7 @@ export class TwitterService extends BaseService {
         try {
           const fileExtension = tweet.photos[0].url.split('.').pop() || '';
           
+          // TODO: tweet.username must be wallet address
           const params: CertificateParams = {
             contentFormat: fileExtension,
             name: `Twitter Certificate - ${tweet.userId}`,

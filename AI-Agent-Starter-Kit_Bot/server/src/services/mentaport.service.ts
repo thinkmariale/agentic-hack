@@ -50,7 +50,8 @@ export class MentaportService{
     try {
       params.projectId = process.env.MENTAPORT_PROJECT_ID || '';
       let blob = await dataURItoBlob(contentURL);
-  
+      
+      console.log("here 1",params.projectId)
       const fileExtension = contentURL.split('.').pop() || '';
       if(blob.type === 'application/octet-stream') {
         const bytes = await blob.arrayBuffer()
@@ -59,13 +60,14 @@ export class MentaportService{
       }
       let imageBuffer = await resizeImage(blob);
       blob = new Blob([imageBuffer], { type: 'image/'+fileExtension });
-      
+      console.log("here 2", params)
       if(!params.contentFormat) {
         const contentType = blob.type;
         const format = getContentFormat(contentType) || 'jpg';
         params.contentFormat = format;
       }
-    
+      
+      console.log("here 3")
       const formData = new FormData();
       formData.append("content", blob, `certificate.${params.contentFormat}`);
    
@@ -82,6 +84,7 @@ export class MentaportService{
         body: formData
       });
       if(response.status !== 200) {
+        console.log("here response",response)
         return {
           status: false,
           message: "Certificate creation failed",
@@ -90,6 +93,7 @@ export class MentaportService{
       const certificate = await response.json() as any;
       const certId = certificate.data.certId;
       const status = await this.queryCertificateStatus(certId)
+      console.log('status', status)
       if (status.data.status.status === 'Pending') {
         return await this.queryApproveAndDownloadCertificate(certId);
       }
@@ -256,7 +260,7 @@ export class MentaportService{
         });
         status = await statusResponse.json() as any;
         await new Promise(r => setTimeout(r, 3000));
-      } while (status.data.status.status == 'Processing' || status.data.status.status == 'Initializing');
+      } while (status.data.status.status == 'Processing' || status.data.status.status == 'Initiating');
       
       
       return status;
@@ -279,7 +283,7 @@ export class MentaportService{
         );
         status = await statusResponse.json() as any;
         await new Promise(r => setTimeout(r, 3000));
-      } while (status.data.status.status == 'Processing' || status.data.status.status == 'Initializing');
+      } while (status.data.status.status == 'Processing' || status.data.status.status == 'Initiating');
       
       return status;
 

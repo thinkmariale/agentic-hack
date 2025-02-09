@@ -65,7 +65,7 @@ export class ReputationContractService extends BaseService{
       if (!this.contract) {
         return null;
       }
-
+      console.log('[addInfringement]')
       const existingPost = await this.getReportedPost(post.contentHash);
       if (existingPost) {
         // no need to recalculate the context. return the existing reputation score;
