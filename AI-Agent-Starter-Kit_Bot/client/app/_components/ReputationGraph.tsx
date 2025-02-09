@@ -63,7 +63,71 @@ export function ReputationGraph() {
       setIsLoading(false);
     }
   };
+  const handleVerify = async (e: React.MouseEvent) => {
+    console.log('handleVerify')
+    e.preventDefault();
+    setIsLoading(true);
 
+    const info ={
+      wallet: 'na',
+      contentURL: 'https://pbs.twimg.com/media/GjSzA2HWgAAWVFD?format=jpg'
+    }
+    try {
+      const response = await fetch(`/api/reputation/verify/file`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(info)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      alert(data.message)
+    
+      setIsLoading(false);
+      callUsersGraph()
+
+    } catch (error: unknown) {
+      setIsLoading(false);
+    }
+  };
+  const handleMint = async (e: React.MouseEvent) => {
+    console.log('handleMint')
+    e.preventDefault();
+    setIsLoading(true);
+
+    const createCert ={
+      name: 'funkyfrogs',
+      wallet: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
+      description: 'Certificate created from IP Defender Agent chat',
+      usingAI: true,
+      contentURL: 'https://pbs.twimg.com/media/GjSzA2HWgAAWVFD?format=jpg'
+    }
+    try {
+      const response = await fetch(`/api/reputation/mint/file`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(createCert)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      alert(data.message)
+    
+      setIsLoading(false);
+      callUsersGraph()
+
+    } catch (error: unknown) {
+      setIsLoading(false);
+    }
+  };
   const reputationGraphColumnDefs: TableColumn[] = useMemo(() => [
     {
       title: 'User ID',
@@ -133,15 +197,30 @@ export function ReputationGraph() {
 
   return (
     <div className="flex flex-col" style={{ width: "100%" }}>
-      <Button
+      {/* <Button
         type="button"
         onClick={handleAddInfringerSubgraph}
         disabled={isLoading}
         className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
       >
         {isLoading ? "Connecting..." : "Add Infringer"}
+      </Button> */}
+      <Button
+        type="button"
+        onClick={handleVerify}
+        disabled={isLoading}
+        className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
+      >
+        {isLoading ? "Connecting..." : "Verify Content"}
       </Button>
-
+      <Button
+        type="button"
+        onClick={handleMint}
+        disabled={isLoading}
+        className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
+      >
+        {isLoading ? "Connecting..." : "Mint Content"}
+      </Button>
       {mounted &&
         <div style={{ 
             padding: "30px 0 45px", 

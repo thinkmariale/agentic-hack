@@ -103,12 +103,12 @@ app.listen(port, async () => {
     console.log("NGROK URL:", ngrokUrl);
 
     // Initialize Telegram bot and set webhook
-    await telegramService.start();
-    await telegramService.setWebhook(ngrokUrl);
-    services.push(telegramService);
+    // await telegramService.start();
+    // await telegramService.setWebhook(ngrokUrl);
+    // services.push(telegramService);
 
-    const botInfo = await telegramService.getBotInfo();
-    console.log("Telegram Bot URL:", `https://t.me/${botInfo.username}`);
+    // const botInfo = await telegramService.getBotInfo();
+    // console.log("Telegram Bot URL:", `https://t.me/${botInfo.username}`);
 
     // Initializing ReputationContractService
     const reputationContractService = ReputationContractService.getInstance();

@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { Tweet } from "agent-twitter-client";
 import { ReportedPost, CopyrightInfringementUser} from "../contracts/types/index.js";
 import  {ReputationContractService} from "../services/reputationContract.service.js"
+import { MentaportService, CertificateParams } from "../services/mentaport.service.js";
 
 const router = Router();
 
@@ -101,6 +102,97 @@ router.get("/get/reportedPost", async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("[RepGraph GetPosts] Error:", error);
+    res.status(400).json({
+      success: false,
+      error: "Failed to fetch posts information",
+    });
+  }
+});
+
+//MENTAPORT ENDPOINTS
+
+router.post("/mint/message", async (req: Request, res: Response) => {
+  try {
+    console.log('[MINT API ENDPOINT]')
+    const { name, wallet, description, usingAI } = req.query;
+    const ai = usingAI as string
+    let usingAI_bool = false
+    if(ai === 'true'){
+      usingAI_bool = true
+    }
+    const params: CertificateParams = {
+      name: `Certificate - ${name || 'funkyfrogs'}`,
+      username: wallet as string || 'funkyfrogs',
+      description: description as string || 'Certificate created from IP Defender Agent chat',
+      aiTrainingMiningInfo: 'not_allowed',
+      usingAI: usingAI_bool
+    }
+    const content = req.body
+  
+    const certifyResult = await  MentaportService.getInstance().createCertificateBlob(content, params);
+    console.log('certifyResult', certifyResult);
+    res.json({
+      success: true,
+      message: "Certificate created successfully",
+      data: certifyResult,
+    });
+  } catch (error) {
+    console.error("[Mentpoart Mint] Error:", error);
+    res.status(400).json({
+      success: false,
+      error: "Failed to fetch posts information",
+    });
+  }
+});
+
+// MENTAPORT ENDPOINTS for file
+router.post("/verify/file", async (req: Request, res: Response) => {
+  try {
+    console.log('[VERIFY-file API ENDPOINT]')
+    const { wallet, contentURL } = req.body;
+    console.log(wallet, contentURL)
+    
+    const verifyResult = await  MentaportService.getInstance().verifyContent(
+      contentURL || "",
+      "https://ipdefender.chat.mentaport.com",
+      wallet || "na"
+    );
+    console.log('verifyResult', verifyResult);
+    res.json({
+      success: true,
+      message: "Verified successfully",
+      data: verifyResult,
+    });
+  } catch (error) {
+    console.error("[Mentpoart VerifyFile] Error:", error);
+    res.status(400).json({
+      success: false,
+      error: "Failed to fetch posts information",
+    });
+  }
+});
+router.post("/mint/file", async (req: Request, res: Response) => {
+  try {
+    console.log('[MINT-file API ENDPOINT]')
+    const { name, wallet, description, usingAI,contentURL } = req.body
+    // const content = await fetch(contentURL).then((response) => response.blob());
+    const params: CertificateParams = {
+      name: `Certificate - ${name || 'funkyfrogs'}`,
+      username: wallet || 'funkyfrogs',
+      description: description || 'Certificate created from IP Defender Agent chat',
+      aiTrainingMiningInfo: 'not_allowed',
+      usingAI: usingAI
+    };
+
+    const certifyResult = await  MentaportService.getInstance().createCertificate(contentURL, params);
+    console.log('certifyResult', certifyResult);
+    res.json({
+      success: true,
+      message: "Certificate created successfully",
+      data: certifyResult,
+    });
+  } catch (error) {
+    console.error("[Mentpoart MintFile] Error:", error);
     res.status(400).json({
       success: false,
       error: "Failed to fetch posts information",

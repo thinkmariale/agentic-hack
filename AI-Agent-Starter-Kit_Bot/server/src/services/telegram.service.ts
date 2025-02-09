@@ -3,13 +3,10 @@ import { BaseService } from "./base.service.js";
 import { ElizaService } from "./eliza.service.js";
 import {
   AnyType,
-  CertificateParams,
-  createCertificate,
   getCollablandApiUrl,
-  pollVerificationStatus,
-  VerificationResult,
-  verifyContent,
 } from "../utils.js";
+import { MentaportService, CertificateParams } from "./mentaport.service.js";
+
 import fs from "fs";
 import axios, { isAxiosError } from "axios";
 import path, { resolve } from "path";
@@ -289,16 +286,16 @@ export class TelegramService extends BaseService {
           await ctx.reply("Verifying image...");
       
           try {
-            const verifyResult = await verifyContent(
+            const verifyResult = await MentaportService.getInstance().verifyContent(
               response.url,
               `telegram_${message.message_id}`,
               'na' //`telegram_${ctx.from.id}`
-            ) as VerificationResult;
+            ) as any;
             await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
               parse_mode: "HTML"
             });
-            const status = await pollVerificationStatus(verifyResult.data.verId);
-            await ctx.reply(`Verification result: ${JSON.stringify(status)}`);
+            // const status = await pollVerificationStatus(verifyResult.data.verId);
+            await ctx.reply(`Verification result: ${JSON.stringify(verifyResult)}`);
           } catch (error) {
             await ctx.reply(`Error: ${error.message}`);
           }
@@ -330,56 +327,27 @@ export class TelegramService extends BaseService {
               aiTrainingMiningInfo: 'not_allowed',
               usingAI: false
             };
-
-            // Create certificate
-            const certificate = await createCertificate(fileUrl, params) as any;
-
             console.log('create certificate response ..')
-       
+
+            await ctx.reply(`Thanks for using my service, your certificate minting is in progress ...`);
+            // Create certificate
+            const certificate = await MentaportService.getInstance().createCertificate(fileUrl, params) as any;
             console.log(certificate)
-            await ctx.reply(`Thanks for using my service, your certifctae minting is in progress ...`);
-            // Poll status
-            let status;
-            do {
-              const statusResponse = await fetch(`${process.env.VERIFY_API_URL}/certificates/status?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`, {
-                headers: { 'x-api-key': process.env.CERT_API_KEY! }
-              });
-              status = await statusResponse.json() as any;
-              console.log('check certificate upload status ..', status)
-
-              await new Promise(r => setTimeout(r, 3000));
-            } while (status.data.status.status === 'Processing' || status.data.status.status === 'Initiating');
-       
-            // Approve certificate
-            if (status.data.status.status === 'Pending') {
-              await ctx.reply(`We are one step away from finalizing your certifcate minting, stay connected ...`);
-
-              const approveResponse = await fetch(`${process.env.VERIFY_API_URL}/certificates/approve?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}&approved=true`, {
-                method: 'POST',
-                headers: { 'x-api-key': process.env.CERT_API_KEY! }
-              }) as any;
-              const approved = await approveResponse.json();
-              console.log('check certificate approve status ..', approved)
-
-              const downloadResponse = await fetch(
-                `${process.env.VERIFY_API_URL}/download?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`,
-                {
-                  headers: { 'x-api-key': process.env.CERT_API_KEY! }
-                }
-              );
-              const downloadData = await downloadResponse.json() as any;
-           
+            if(certificate.status) {
+              const downloadData = certificate.data.downloadData;
+              const approved = certificate.data.approved;
               // Download image
               const imageResponse = await fetch(downloadData.data);
               const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+              // Send telegram
               await ctx.api.sendPhoto(ctx.chat.id, new InputFile(imageBuffer), {
                 caption: `Congratulations! Certificate created and approved.\nCertificate ID: ${approved.data.certId}\nTransaction: ${approved.data.txnHash}\nToken ID: ${approved.data.tokenId}\nContract: ${approved.data.contractAddress}\nMetadata: ${approved.data.metadataUri}`
                });
-              // await ctx.reply(`Congratulations! Certificate created and approved. Your certificate ID: ${approved.data.certId}. Find your certificate on-chain minted on Base chain in transaction: ${approved.data.txnHash}, and token Id (${approved.data.tokenId}) on this contract address (${approved.data.contractAddress}). If you want to check the certificate NFT metadata check the IPFS link here ${approved.data.metadataUri}`);
-            } else {
-              await ctx.reply(`Certificate creation failed: ${status.status}. `);
             }
-       
+            else {
+              await ctx.reply(`Certificate creation failed: ${certificate.status}. `);
+            }
+            
           } catch (error) {
             console.error('error in mint certificate: ',error);
             await ctx.reply(`Error: ${error.message}`);

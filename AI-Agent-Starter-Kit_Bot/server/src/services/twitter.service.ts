@@ -2,7 +2,9 @@ import { BaseService } from "./base.service.js";
 import { Profile, Scraper, SearchMode, Tweet } from "agent-twitter-client";
 import fs from "fs/promises";
 import { join, dirname } from "path";
-import { CertificateParams, createCertificate, pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
+// import { CertificateParams, createCertificate, pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
+
+import { MentaportService, CertificateParams } from "./mentaport.service.js";
 import { getCollablandApiUrl } from "../utils.js";
 import { IAccountInfo } from "../types.js";
 import axios, { AxiosError } from "axios";
@@ -99,16 +101,15 @@ export class TwitterService extends BaseService {
           const userWalletAddress = await this.getTwitterUserIdWalletAddress(
             tweet.userId as string
           );
-          const verifyResult = await verifyContent(
+          const verifyResult = await MentaportService.getInstance().verifyContent(
             tweet.photos[0].url,
-            tweet.permanentUrl || "",
+            tweet.permanentUrl || "https://ipdefender.chat.mentaport.com",
             userWalletAddress.account || "na"
-          ) as VerificationResult;
+          );
 
-          console.log("verify call result: ", verifyResult);
-
-          const finalStatus = await pollVerificationStatus(verifyResult.data.verId);
-
+          if(!verifyResult.status) {
+          }
+          const finalStatus = verifyResult.data.status;
           console.log("send tweet");
           try {
             let tweetReply = '';
@@ -163,7 +164,6 @@ export class TwitterService extends BaseService {
           const fileExtension = tweet.photos[0].url.split('.').pop() || '';
           
           const params: CertificateParams = {
-            projectId: process.env.PROJECT_ID!,
             contentFormat: fileExtension,
             name: `Twitter Certificate - ${tweet.userId}`,
             username: tweet.username || 'twitter_user',
@@ -172,50 +172,22 @@ export class TwitterService extends BaseService {
             usingAI: false
           };
    
-          const certificate = await createCertificate(tweet.photos[0].url, params) as any;
-          
-          await this.scraper.sendTweet(
-            `Starting certificate creation. Certificate ID: ${certificate.data.certId}`,
-            tweet.id
-          );
-   
-          let status;
-          do {
-            const statusResponse = await fetch(
-              `${process.env.VERIFY_API_URL}/certificates/status?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`,
-              { headers: { 'x-api-key': process.env.CERT_API_KEY! } }
-            );
-            status = await statusResponse.json() as any;
-            await new Promise(r => setTimeout(r, 3000));
-          } while (status.data.status.status === 'Processing');
-   
-          if (status.data.status.status === 'Pending') {
-            const approveResponse = await fetch(
-              `${process.env.VERIFY_API_URL}/certificates/approve?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}&approved=true`,
-              {
-                method: 'POST',
-                headers: { 'x-api-key': process.env.CERT_API_KEY! }
-              }
-            );
-            const approved = await approveResponse.json() as any;
-
-            const downloadResponse = await fetch(
-              `${process.env.VERIFY_API_URL}/download?projectId=${process.env.PROJECT_ID}&certId=${certificate.data.certId}`,
-              {
-                headers: { 'x-api-key': process.env.CERT_API_KEY! }
-              }
-            );
-            const downloadData = await downloadResponse.json() as any;
-         
+          const certificate = await MentaportService.getInstance().createCertificate(tweet.photos[0].url, params) as any;
+          if(certificate.status) {
+            const downloadData = certificate.data.downloadData;
+            const approved = certificate.data.approved;
             // Download image
             const imageResponse = await fetch(downloadData.data);
             const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-            
+            // Send tweet
             await this.scraper.sendTweet(
               `Certificate created and approved!\nTransaction: ${approved.data.txnHash}\nToken ID: ${approved.data.tokenId}\nContract: ${approved.data.contractAddress}\nMetadata: ${approved.data.metadataUri}`,
               tweet.id,
               [{ data: imageBuffer, mediaType: 'image/jpg' }]
             );
+          }
+          else {
+            console.log(certificate.message);
           }
         } catch (error) {
           await this.scraper.sendTweet(`Error creating certificate: ${error.message}`, tweet.id);

@@ -12,13 +12,15 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, AlertCircle } from "lucide-react";
 import ChatBox from "@/components/ui/chatBox/chatBox";
+// import { loadFileIntoBlob, getContentFormat } from "@/lib/utils";
+import { CreateCertificate, Verify } from "../lib/mentaport/index";
 
 export default function HelloWorld() {
   const [isConfigured, setIsConfigured] = useState<boolean>(
     !!process.env.NEXT_PUBLIC_API_URL
   );
   const [data, setData] = useState<any>(null);
-  const [messageResponse, setMessageResponse] = useState<string>('');
+  // const [messageResponse, setMessageResponse] = useState<string>('');
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -34,8 +36,58 @@ export default function HelloWorld() {
     }
   }, [isConfigured]);
 
+  const handleVerify = async (file:File) => {
+    console.log('handleVerify')
+    try {
+      // send to mentaport to verify img
+      const verifyResult = await Verify(file);
+      alert(verifyResult.message)
+      return {success: true, message:verifyResult.message, data: verifyResult.data};
+
+    } catch (error: unknown) {
+      return{success: false, message: "Verification failed"}
+    }
+  };
+
+  const handleMint = async (file: File, message:string) => {
+    console.log('handleMint')
+    
+    try {
+      
+      let createCert ={
+        name: 'funkyfrogs',
+        username: '0x5fbdb2315678afecb367f032d93f642f64180aa3',
+        description: 'Certificate created from IP Defender Agent chat',
+        usingAI: true,
+      }
+      // const response = await fetch(`/api/reputation/mint/message?`, {
+      //   method: "POST",
+      //   body: JSON.stringify(message),
+      // });
+      // if (response.ok) {
+      //  const data = await response.json();
+      //   //throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // 
+      
+      const createCertResult = await CreateCertificate(file, createCert);
+      alert(createCertResult.message)
+      //return createCertResult
+      return {success: true, message:createCertResult.message, data: createCertResult.data};
+
+    } catch (error: unknown) {
+      return false
+    }
+  };
   const onSendMessage = useCallback(async (message: string, file?: File) => {
     try {
+      if(file) {
+        if(message.includes('verify')) {
+          return await handleVerify(file)
+        } else if(message.includes('mint')) {
+          return await handleMint(file)
+        }
+      }
       const response = await fetch(`/api/hello/chat`, {
         method: "POST",
         body: JSON.stringify({ message }),
@@ -48,7 +100,7 @@ export default function HelloWorld() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      setMessageResponse(data)
+      // setMessageResponse(data)
      
       return data
     } catch (error) {

@@ -1,6 +1,11 @@
 import { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb' // Increase to 2MB
+    },
+  },
   poweredByHeader: false,
   reactStrictMode: true,
   images: {
@@ -21,6 +26,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     proxyTimeout: 10 * 60 * 1000,
+    
   },
 };
 
