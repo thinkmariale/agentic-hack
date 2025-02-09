@@ -17,7 +17,7 @@ export interface CopyrightInfringementUser {
   reputationScore?: number;           // reputation score of the user, updated any time the reputation score is calculated
 }
 export interface ReportedPost {
-  recordId: string | number;                   // unique identifier for the record
+  recordId: string ;                   // unique identifier for the record
   contentHash: string;                // used to check if the content has been reported before
   userId: string;                     // user id of the person who posted the content
   postText?: string;                  // text of the post

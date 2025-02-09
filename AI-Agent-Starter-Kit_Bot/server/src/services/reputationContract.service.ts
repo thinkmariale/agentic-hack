@@ -4,7 +4,8 @@ import { ethers, Wallet } from "ethers";
 import { ReputationAgent__factory, ReportedPost, CopyrightInfringementUser } from "../contracts/types/index.js";
 import { AddInfringementReponse, OffenseContext } from "../contracts/types/ReputationAgent.js";
 import { ReputationAlgorithmService } from "./reputationAlgorithm.service.js";
-import { OffenseContextScore } from "../contracts/types/ReputationAlgorithm.js";
+// import { OffenseContextScore } from "../contracts/types/ReputationAlgorithm.js";
+// import {v4 as uuidv4} from 'uuid';
 
 export class ReputationContractService extends BaseService{
   private static instance: ReputationContractService;
@@ -30,47 +31,73 @@ export class ReputationContractService extends BaseService{
   public async stop(): Promise<void> {}
   
   private async generatePostSeverityScore(post: ReportedPost): Promise<{ severityScore: number, context: OffenseContext, explanation: string }> {
-    const algorithmService = ReputationAlgorithmService.getInstance();
-    const res = await algorithmService.generatePostSeverityScore(post);
-
-    if (!res) 
+    console.log("generatePostSeverityScore", post)
+    try{
       return {
-        severityScore: 0,
+        severityScore: 1,
         context: "unknown",
-        explanation: 'We were unable to determine the context of the offense.',
+        explanation: 'Some funk stuff!.',
       }
+    // const algorithmService = ReputationAlgorithmService.getInstance();
+    // const res = await algorithmService.generatePostSeverityScore(post);
 
-      const { context, explanation } = res;
-      const severityScore = OffenseContextScore[context];
-      return { severityScore, context, explanation };
+    // if (!res) 
+    //   return {
+    //     severityScore: 0,
+    //     context: "unknown",
+    //     explanation: 'We were unable to determine the context of the offense.',
+    //   }
+
+    //   const { context, explanation } = res;
+    //   const severityScore = OffenseContextScore[context];
+    //   return { severityScore, context, explanation };
+    } catch {
+      console.log("hERE")
+      return {
+        severityScore: 1,
+        context: "unknown",
+        explanation: 'Some funk stuff!.',
+      }
+    }
   }
 
   private async generateUserReputationScore(userId: string): Promise<{ score: number, posts: ReportedPost[] }> {
-    const algorithmService = ReputationAlgorithmService.getInstance();
-    const user = await this.getCopyrightInfringementUser(userId);
-    if (!user) {
-      return { score: 0, posts: [] };
-    }
+    try {
+      const user = await this.getCopyrightInfringementUser(userId);
+      if (!user) {
+        return { score: 0, posts: [] };
+      }
+      const algorithmService = ReputationAlgorithmService.getInstance();
 
-    const posts = await this.getUsersPosts(userId);
-    const score = algorithmService.generateUserOverallReputationScore(posts);
-    return { score, posts };
+      const posts = await this.getUsersPosts(userId);
+      const score = algorithmService.generateUserOverallReputationScore(posts);
+      return { score, posts };
+    } catch {
+      return { score: 1, posts: [] };
+    }
+  
   }
 
-
+private  getId() {
+  const randomBigInt= Math.random().toString().slice(2, 15) + Math.random().toString().slice(2, 15) 
+  return randomBigInt
+}
   public async addInfringement(infringeUser: CopyrightInfringementUser, post: ReportedPost): Promise<AddInfringementReponse | null> {
     try {
       if (!this.contract) {
         return null;
       }
+      const existingUser = await this.getCopyrightInfringementUser(infringeUser.userId);
       console.log('[addInfringement]')
       console.log(infringeUser)
       console.log(post)
-      post.recordId = 1
+      const dd = new Date().getTime();
+      let myuuid = this.getId();
+      console.log(myuuid)
+      post.recordId = myuuid.toString();
       const existingPost = await this.getReportedPost(post.contentHash);
       if (existingPost) {
         // no need to recalculate the context. return the existing reputation score;
-        const existingUser = await this.getCopyrightInfringementUser(infringeUser.userId);
         if (existingUser) {
           const response: AddInfringementReponse = {
             userId: existingUser.userId,
@@ -80,7 +107,6 @@ export class ReputationContractService extends BaseService{
               offenseContextExplanation: existingPost.derivedContextExplanation!,
             }
           }
-
           return response;
         }
         return null;
@@ -92,41 +118,58 @@ export class ReputationContractService extends BaseService{
       post.derivedContext = context;
       post.derivedContextExplanation = explanation;
       console.log(infringeUser)
-      infringeUser.firstOffenseTimestamp  = 0;
-      infringeUser.lastOffenseTimestamp = 0;
+      infringeUser.firstOffenseTimestamp  = dd;
+      infringeUser.lastOffenseTimestamp = dd;
       infringeUser.reputationScore = 0;
-      console.log(post)
-      const result = await this.contract.AddInfringement(infringeUser, post);
+     
       const scoreRes = await this.generateUserReputationScore(infringeUser.userId);
+     
       if (!scoreRes) {
-        return null;
+        infringeUser.reputationScore = 0;
+      } else 
+      {
+        infringeUser.reputationScore = scoreRes.score;
       }
-      console.log(scoreRes)
-      const { score: reputationScore, posts: refreshedPosts } = scoreRes;
-      const infringingPosts = refreshedPosts.filter(post => post.severityScore !== undefined || post.severityScore !== 0).sort((a, b) => a.timestamp - b.timestamp);
-      const refreshedPost = refreshedPosts.find(p => p.contentHash === post.contentHash);
-      const isFirstOffense = !infringeUser.firstOffenseTimestamp && infringingPosts.length === 1;
-      console.log(infringingPosts)
-      const firstOffenseTimestamp = (isFirstOffense ? post.timestamp : infringeUser.firstOffenseTimestamp)!;
-      const lastOffenseTimestamp = infringingPosts[infringingPosts.length - 1].timestamp;
-      if (reputationScore) {
-        // update the user
-        await this.updateCopyrightInfringementUser(
-          infringeUser.userId, 
-          reputationScore, 
-          firstOffenseTimestamp, 
-          lastOffenseTimestamp,
-          refreshedPosts.length, 
-          infringingPosts.length);
+      console.log('existingUser', existingUser)
+      if(existingUser)
+      {
+        infringeUser.firstOffenseTimestamp = existingUser.firstOffenseTimestamp;
+        if(existingUser.firstOffenseTimestamp === undefined || Number(existingUser.firstOffenseTimestamp)== 0 ){
+          infringeUser.firstOffenseTimestamp = dd;
+          
+        }
+        infringeUser.postCount = Number(existingUser.postCount) + 1;
+        infringeUser.offenseCount = Number(existingUser.offenseCount) + 1;
+        console.log("infringeUser",infringeUser)
       }
+      const result = await this.contract.AddInfringement(infringeUser, post);
+     // todo: revise this logic
+      // console.log(scoreRes)
+      //const { score: reputationScore, posts: refreshedPosts } = scoreRes;
+      // const infringingPosts = refreshedPosts.filter(post => post.severityScore !== undefined || post.severityScore !== 0).sort((a, b) => a.timestamp - b.timestamp);
+      const refreshedPost = scoreRes.posts.find(p => p.contentHash === post.contentHash);
+      // const isFirstOffense = !infringeUser.firstOffenseTimestamp && infringingPosts.length === 1;
+      // console.log(infringingPosts)
+      // const firstOffenseTimestamp = (isFirstOffense ? post.timestamp : infringeUser.firstOffenseTimestamp)!;
+      // const lastOffenseTimestamp = infringingPosts[infringingPosts.length - 1].timestamp;
+      // if (reputationScore) {
+      //   // update the user
+      //   await this.updateCopyrightInfringementUser(
+      //     infringeUser.userId, 
+      //     reputationScore, 
+      //     firstOffenseTimestamp, 
+      //     lastOffenseTimestamp,
+      //     refreshedPosts.length, 
+      //     infringingPosts.length);
+      // }
 
       console.log(result)
       const res: AddInfringementReponse = {
         userId: result.userId,
         reputationScore: result.reputationScore,
         post: {
-          offenseContext: refreshedPost?.derivedContext!,
-          offenseContextExplanation: refreshedPost?.derivedContextExplanation!,
+          offenseContext: refreshedPost?.derivedContext || 'unknown',
+          offenseContextExplanation: refreshedPost?.derivedContextExplanation || 'Have fun with it',
         }
       }
       return res;
