@@ -122,6 +122,12 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
     }, []);
 
     useEffect(() => {
+        if (chatRef.current) {
+          chatRef.current.scrollTop = chatRef.current.scrollHeight;
+        }
+      }, [messages.length]);
+
+    useEffect(() => {
         console.log("messages changed", messages);
         if(messages.length === 0) return;
         // populate image previews if they are not already set
