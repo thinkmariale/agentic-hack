@@ -91,16 +91,22 @@ export class ReputationContractService extends BaseService{
       post.severityScore = severityScore;
       post.derivedContext = context;
       post.derivedContextExplanation = explanation;
+      console.log(infringeUser)
+      infringeUser.firstOffenseTimestamp  = 0;
+      infringeUser.lastOffenseTimestamp = 0;
+      infringeUser.reputationScore = 0;
+      console.log(post)
       const result = await this.contract.AddInfringement(infringeUser, post);
       const scoreRes = await this.generateUserReputationScore(infringeUser.userId);
       if (!scoreRes) {
         return null;
       }
+      console.log(scoreRes)
       const { score: reputationScore, posts: refreshedPosts } = scoreRes;
       const infringingPosts = refreshedPosts.filter(post => post.severityScore !== undefined || post.severityScore !== 0).sort((a, b) => a.timestamp - b.timestamp);
       const refreshedPost = refreshedPosts.find(p => p.contentHash === post.contentHash);
       const isFirstOffense = !infringeUser.firstOffenseTimestamp && infringingPosts.length === 1;
-
+      console.log(infringingPosts)
       const firstOffenseTimestamp = (isFirstOffense ? post.timestamp : infringeUser.firstOffenseTimestamp)!;
       const lastOffenseTimestamp = infringingPosts[infringingPosts.length - 1].timestamp;
       if (reputationScore) {
@@ -178,7 +184,7 @@ export class ReputationContractService extends BaseService{
       if (!this.contract) {
         return null;
       }
-      const result: CopyrightInfringementUser = await this.contract.GetUsers(userId);
+      const result: CopyrightInfringementUser = await this.contract.users(userId);
       console.log(result)
       if (result.postCount == 0) {
         return null

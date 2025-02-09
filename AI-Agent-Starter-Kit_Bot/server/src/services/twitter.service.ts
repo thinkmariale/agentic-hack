@@ -147,10 +147,15 @@ export class TwitterService extends BaseService {
                 derivedContextExplanation: undefined
               }
 
-              const res = await repService.addInfringement(user, post);
-              console.log('infringe res ', res)
-              // turn this into natural text.
-              tweetReply = JSON.stringify(res);
+              let res = await repService.addInfringement(user, post);
+              if(!res) {
+                tweetReply = `No certificate found and contetn can't be verified`
+              } else {
+                res.reputationScore = res.reputationScore.toString() as string;
+                console.log('infringe res ', res)
+                // turn this into natural text.
+                tweetReply = JSON.stringify(res);
+              }
             } else {
               tweetReply = `No certificate found and contetn can't be verified`
             }

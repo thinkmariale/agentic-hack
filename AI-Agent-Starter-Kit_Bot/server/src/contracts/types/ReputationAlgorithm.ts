@@ -24,9 +24,9 @@ export enum OffenseScoreWeights {
 }
 
 export const OffenseContextScore: { [key in OffenseContext]: number } = {
-    plagiarism: 1.5,
-    misattribution: 0.5,
-    potentialFairUse: 0.2,
+    plagiarism: 4,
+    misattribution: 2,
+    potentialFairUse: 1,
     fairUse: 0,
     unknown: 0
 }

@@ -32,7 +32,7 @@ export interface ReportedPost {
 
 export interface AddInfringementReponse {
   userId: string;
-  reputationScore: number;
+  reputationScore: string | number;
   post: {
     offenseContext: OffenseContext;
     offenseContextExplanation: string;
