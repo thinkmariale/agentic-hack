@@ -114,7 +114,7 @@ export class TwitterService extends BaseService {
           console.log(verifyResult)
           try {
             let tweetReply = '';
-            if( finalStatus.status !== 'Certified') {
+            if( finalStatus.status === 'Certified') {
               tweetReply = `Certificate found and you can view the ceritifcate transaction at ${verifyResult.data.verId}`
               const { text, permanentUrl, username, timestamp } = tweet;
               const currTime = new Date().getTime();
