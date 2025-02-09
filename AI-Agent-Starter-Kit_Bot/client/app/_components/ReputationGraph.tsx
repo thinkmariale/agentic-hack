@@ -161,28 +161,36 @@ export function ReputationGraph() {
       display: "flex",
       }}>
       <div className="flex flex-col" style={{ width: "100%", maxWidth: "70vw", marginTop: "15px", gap: "15px" }}>
-        <Button
-          type="button"
-          onClick={handleAddInfringerSubgraph}
-          disabled={isLoading}
-          className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
-        >
-          {isLoading ? "Connecting..." : "Add Infringer"}
-        </Button>
-        {!isLoading && mounted && (
+        {/* create a grid with 2 columns */}
+        <div style={{
+          // grid has 2 columns and spans the full width
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: "15px",
+          width: "100%",
+        }}>
           <Button
             type="button"
-            onClick={handleRefreshGraph}
-            disabled={refreshingGraphs}
+            onClick={handleAddInfringerSubgraph}
+            disabled={isLoading}
             className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
           >
-            {refreshingGraphs ? "Refreshing..." : "Refresh Graphs"}
+            {isLoading ? "Connecting..." : "Add Infringer"}
           </Button>
-        )}
-
+          {!isLoading && mounted && (
+            <Button
+              type="button"
+              onClick={handleRefreshGraph}
+              disabled={refreshingGraphs}
+              className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
+            >
+              {refreshingGraphs ? "Refreshing..." : "Refresh Graphs"}
+            </Button>
+          )}
+        </div>
         {mounted &&
           <div style={{ 
-              padding: "30px 0 45px", 
+              padding: "20px 0 25px", 
               display: "flex", 
               flexDirection: "column", 
               width: "100%", 
