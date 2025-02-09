@@ -53,32 +53,13 @@ router.post("/add", async (_req: Request, res: Response) => {
     derivedContextExplanation: undefined
   }
 
-  // see if the post already exists in the graph
-  let postExists = false;
-  try {
-    const existingPost = await repService.getReportedPost(contentHash);
-    if (existingPost) {
-      post = existingPost;
-      postExists = true;
-    }
-  } catch (error) {
-    console.error("Error getting post from graph", error);
-  }
-
-  /* No need to recalculate the reputation score if the post already exists */
-  if (postExists && post.severityScore && user.reputationScore) {
-    res.json({ message: "Post already reported", reputationScore: user.reputationScore, post: post });
-    return;
-  }
-
   try {
     console.log("HERE", currTime)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const resultInfr = await repService.addInfringement(user, post);
-    const result = await repService.getReputationScore(user.userId);
     console.log(resultInfr)
-    console.log('result',result);
+    console.log('result', resultInfr);
     res.json({ message:"hello form back" });
   } catch (error) {
     console.error("[RepGraph Add] Error:", error);
