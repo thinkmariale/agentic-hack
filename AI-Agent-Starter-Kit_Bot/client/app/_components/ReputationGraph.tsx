@@ -9,21 +9,30 @@ import { Card } from '@/components/ui/card';
 
 export function ReputationGraph() {
   const [isLoading, setIsLoading] = useState(false);
+  const [refreshingGraphs, setRefreshingGraphs] = useState(false);
   const [mounted, setMounted] = React.useState(false);
   const [reputations, setReputations] = React.useState<GetReputationsDocument>()
   const [posts, setPosts] = React.useState<GetPostsDocument>()
 
-  function callUsersGraph() {
-    execute(GetReputationsDocument, {}).then((result: { data: any; }) => {
-      console.log('result', result)
-      setReputations(result?.data?.reputationTypes)
+  const callUsersGraph = async () => {
+    return new Promise((resolve, reject) => {
+      execute(GetReputationsDocument, {}).then((result: { data: any; }) => {
+        setReputations(result?.data?.reputationTypes)
+        resolve(result)
+      }).catch((error: any) => {
+        reject(error)
+      })
     })
   }
 
-  function callPostsGraph() {
-    execute(GetPostsDocument, {}).then((result: { data: any; }) => {
-      console.log('result', result)
-      setPosts(result?.data?.reportedPostTypes)
+  const callPostsGraph = async () => {
+    return new Promise((resolve, reject) => {
+      execute(GetPostsDocument, {}).then((result: { data: any; }) => {
+        setPosts(result?.data?.reportedPostTypes)
+        resolve(result)
+      }).catch((error: any) => {
+        reject(error)
+      })
     })
   }
 
@@ -35,6 +44,18 @@ export function ReputationGraph() {
     callUsersGraph()
     callPostsGraph()
   }, [setReputations, setPosts])
+
+  const handleRefreshGraph = async () => {
+    setRefreshingGraphs(true);
+    try {
+      await callUsersGraph()
+      await callPostsGraph()
+    } catch (error) {
+      console.error("Error refreshing graph", error);
+    } finally {
+      setRefreshingGraphs(false);
+    }
+  }
 
   const handleAddInfringerSubgraph = async (e: React.MouseEvent) => {
     console.log('handleAddInfringerSubgraph')
@@ -139,7 +160,7 @@ export function ReputationGraph() {
       flex: 1,
       display: "flex",
       }}>
-      <div className="flex flex-col" style={{ width: "100%", maxWidth: "70vw", marginTop: "15px" }}>
+      <div className="flex flex-col" style={{ width: "100%", maxWidth: "70vw", marginTop: "15px", gap: "15px" }}>
         <Button
           type="button"
           onClick={handleAddInfringerSubgraph}
@@ -148,6 +169,16 @@ export function ReputationGraph() {
         >
           {isLoading ? "Connecting..." : "Add Infringer"}
         </Button>
+        {!isLoading && mounted && (
+          <Button
+            type="button"
+            onClick={handleRefreshGraph}
+            disabled={refreshingGraphs}
+            className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
+          >
+            {refreshingGraphs ? "Refreshing..." : "Refresh Graphs"}
+          </Button>
+        )}
 
         {mounted &&
           <div style={{ 
