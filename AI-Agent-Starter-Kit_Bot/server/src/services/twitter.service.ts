@@ -5,7 +5,7 @@ import { join, dirname } from "path";
 // import { CertificateParams, createCertificate, pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
 
 import { MentaportService, CertificateParams } from "./mentaport.service.js";
-import {  stringToAddress } from "../utils.js";
+import {  getUserIdWalletAddress } from "../utils.js";
 import { ReputationContractService } from "./reputationContract.service.js";
 import { CopyrightInfringementUser, ReportedPost } from "src/contracts/types/ReputationAgent.js";
 import { ethers } from "ethers";
@@ -96,11 +96,10 @@ export class TwitterService extends BaseService {
         }
         if (tweet.photos.length > 0) {
           console.log(tweet.photos);
-          const userWalletAddress = stringToAddress( tweet.userId as string);
-          // await getUserIdWalletAddress(
-          //   tweet.userId as string,
-          //   "twitter"
-          // );
+          const userWalletAddress = await getUserIdWalletAddress(
+            tweet.userId as string,
+            "twitter"
+          );
           const verifyResult = await MentaportService.getInstance().verifyContent(
             tweet.photos[0].url,
             tweet.permanentUrl || "https://ipdefender.chat.mentaport.com",

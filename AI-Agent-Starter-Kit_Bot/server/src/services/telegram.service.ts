@@ -297,7 +297,9 @@ export class TelegramService extends BaseService {
             // await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
             //   parse_mode: "HTML"
             // });
-            await ctx.reply(`Verification result: ${JSON.stringify(verifyResult)}`);
+            // await ctx.reply(`Verification result: ${JSON.stringify(verifyResult)}`);
+
+            await ctx.reply(`Verification result: Image has been checked and found that image is ${verifyResult.data.status.status}. This verification was done with job Id ${verifyResult.data.verId}`);
 
             const userWalletAddress = stringToAddress(ctx.from.id.toString());
             // await getUserIdWalletAddress(
