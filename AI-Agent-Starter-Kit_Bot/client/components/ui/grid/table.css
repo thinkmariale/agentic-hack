@@ -8,3 +8,15 @@
 .custom-data-grid .MuiDataGrid-columnHeaderTitle {
     font-weight: bold;
 }
+
+.custom-data-grid .MuiDataGrid-root {
+    border: none !important;
+}
+
+.custom-data-grid .MuiDataGrid-main {
+    background-color: white;
+}
+
+.custom-data-grid .MuiDataGrid-footerContainer {
+    background: white;
+}

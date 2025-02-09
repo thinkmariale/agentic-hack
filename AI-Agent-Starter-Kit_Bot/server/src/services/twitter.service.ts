@@ -125,7 +125,7 @@ export class TwitterService extends BaseService {
                 platform: "twitter",
                 username: username!,
                 offenseCount: 0,
-                postCount: 0,
+                postCount: 1,
                 firstOffenseTimestamp: undefined,
                 lastOffenseTimestamp: undefined,
                 reputationScore: undefined

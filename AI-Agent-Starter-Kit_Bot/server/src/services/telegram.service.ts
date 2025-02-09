@@ -10,10 +10,12 @@ import { MentaportService, CertificateParams } from "./mentaport.service.js";
 import fs from "fs";
 import axios, { isAxiosError } from "axios";
 import path, { resolve } from "path";
-import { keccak256, getBytes, toUtf8Bytes } from "ethers";
+import { keccak256, getBytes, toUtf8Bytes, ethers } from "ethers";
 import { TwitterService } from "./twitter.service.js";
 import { NgrokService } from "./ngrok.service.js";
 import { InputFile } from "grammy";
+import { CopyrightInfringementUser, ReportedPost } from "src/contracts/types/ReputationAgent.js";
+import { ReputationContractService } from "./reputationContract.service.js";
 
 // hack to avoid 400 errors sending params back to telegram. not even close to perfect
 const htmlEscape = (_key: AnyType, val: AnyType) => {
@@ -294,8 +296,43 @@ export class TelegramService extends BaseService {
             await ctx.reply(`Verification is progress: Verification Job ID ${verifyResult.data.verId}`, {
               parse_mode: "HTML"
             });
-            // const status = await pollVerificationStatus(verifyResult.data.verId);
             await ctx.reply(`Verification result: ${JSON.stringify(verifyResult)}`);
+
+            if (verifyResult.status && verifyResult.data.status === "Certified") {
+              const repService = await ReputationContractService.getInstance();
+              console.log("Image is certified");
+              const user: CopyrightInfringementUser = {
+                userId: ctx.from.id.toString(),
+                platform: 'telegram',
+                username: ctx.from.username as string,
+                offenseCount: 0,
+                postCount: 1,
+              }
+
+              const postHash = ethers.sha256(ethers.toUtf8Bytes(`${ctx.from.id}_${message.message_id}`));
+              const recordId = ethers.uuidV4(postHash);
+
+              const postToReport: ReportedPost = {
+                recordId,
+                contentHash: postHash,
+                userId: ctx.from.id.toString(),
+                postText: message.caption,
+                postUrl: `https://t.me/${ctx.from.username}/${message.message_id}`,
+                timestamp: new Date().getTime(),
+                reportedTimestamp: new Date().getTime(),
+              }
+
+              const infringementRes = await repService.addInfringement(user, postToReport);
+
+              if (infringementRes) {
+                // const { userId, reputationScore, post } = infringementRes;
+                // TODO: Mariale, change this response if needed?
+                await ctx.reply(`Image is certified and reported to the reputation service.`);
+              } else {
+                await ctx.reply(`Image is certified but failed we couldn't come up with a good reputation score at the moment.`);
+              }
+            }
+
           } catch (error) {
             await ctx.reply(`Error: ${error.message}`);
           }
@@ -319,11 +356,10 @@ export class TelegramService extends BaseService {
             const fileExtension = fileUrl.split('.').pop() || '';
 
             const params: CertificateParams = {
-              projectId: process.env.PROJECT_ID!,
               contentFormat: fileExtension,
-              name: 'Test',
+              name: 'FunkyMint',
               username: message.from.username as string,
-              description: 'Test 1',
+              description: 'Minting just minting, why not',
               aiTrainingMiningInfo: 'not_allowed',
               usingAI: false
             };

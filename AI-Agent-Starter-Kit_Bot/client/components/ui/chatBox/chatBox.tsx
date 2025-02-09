@@ -33,7 +33,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
     const SetInitMessages = () => {
         const newMessages: ChatBoxMessage[] = [
             {
-                message: "Hey! I'm Monty, your AI agent. How can I help you today?",
+                message: "Hey! I'm IP Defender, your AI agent. How can I help you today?",
                 timestamp: new Date().toLocaleString(),
                 user: 'agent',
                 id: 0,
@@ -168,7 +168,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ onSendMessage }) => {
                         </div>
                     </div>
                 ))}
-                {isTyping && <div className={styles.typing}>Computer is typing...</div>}
+                {isTyping && <div className={styles.typing}>Defender is typing...</div>}
             </div>
             {imagePreview &&
                 <div className={styles.imagePreviewContainer}>
