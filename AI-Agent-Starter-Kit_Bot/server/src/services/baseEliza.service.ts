@@ -9,6 +9,7 @@ import gateDataPlugin from "../plugins/gated-storage-plugin/index.js";
 
 elizaLogger.closeByNewLine = false;
 elizaLogger.verbose = true;
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 export class BaseElizaService {
   private static instance: BaseElizaService;

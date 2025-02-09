@@ -48,7 +48,7 @@ router.post("/add", async (_req: Request, res: Response) => {
     postText: text,
     postUrl: permanentUrl,
     timestamp: timestamp || currTime,
-    reportedTimestamp: currTime,
+    // reportedTimestamp: currTime,
     severityScore: undefined,
     derivedContext: undefined,
     derivedContextExplanation: undefined

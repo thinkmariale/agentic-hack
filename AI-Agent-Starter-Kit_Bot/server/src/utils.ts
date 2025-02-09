@@ -5,6 +5,7 @@ const __dirname = new URL(".", import.meta.url).pathname;
 import { config } from "dotenv";
 import axios, { AxiosError } from "axios";
 import { IAccountInfo } from "./types.js";
+import { ethers } from "ethers";
 config();
 
 export type AnyType = any;
@@ -150,6 +151,10 @@ export const getUserIdWalletAddress = async(userId: string, platform: string) =>
     };
   }
 }
+
+export const stringToAddress = (str: string): {account: string} => {
+  return { account: ethers.getAddress('0x' + ethers.keccak256(ethers.toUtf8Bytes(str)).slice(26)) };
+ }
 
 // export const queryVerificationStatus= async(verId: string): Promise<any> => {
 //   try {

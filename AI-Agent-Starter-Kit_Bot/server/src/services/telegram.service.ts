@@ -4,7 +4,7 @@ import { ElizaService } from "./eliza.service.js";
 import {
   AnyType,
   getCollablandApiUrl,
-  getUserIdWalletAddress,
+  stringToAddress,
 } from "../utils.js";
 import { MentaportService, CertificateParams } from "./mentaport.service.js";
 
@@ -299,10 +299,11 @@ export class TelegramService extends BaseService {
             // });
             await ctx.reply(`Verification result: ${JSON.stringify(verifyResult)}`);
 
-            const userWalletAddress = await getUserIdWalletAddress(
-              ctx.from.id.toString(),
-              "telegram"
-            );
+            const userWalletAddress = stringToAddress(ctx.from.id.toString());
+            // await getUserIdWalletAddress(
+            //   ctx.from.id.toString(),
+            //   "telegram"
+            // );
             console.log("verifyResult", verifyResult)
             if (verifyResult.status && verifyResult.data.status.status === "Certified") {
               const repService = await ReputationContractService.getInstance();
@@ -326,7 +327,7 @@ export class TelegramService extends BaseService {
                 postText: message.caption,
                 postUrl: `https://t.me/${ctx.from.username}/${message.message_id}`,
                 timestamp: new Date().getTime(),
-                reportedTimestamp: new Date().getTime(),
+                // reportedTimestamp: new Date().getTime(),
               }
 
               const infringementRes = await repService.addInfringement(user, postToReport);

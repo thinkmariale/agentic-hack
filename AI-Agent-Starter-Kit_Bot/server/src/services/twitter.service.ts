@@ -5,7 +5,7 @@ import { join, dirname } from "path";
 // import { CertificateParams, createCertificate, pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
 
 import { MentaportService, CertificateParams } from "./mentaport.service.js";
-import { getUserIdWalletAddress } from "../utils.js";
+import {  stringToAddress } from "../utils.js";
 import { ReputationContractService } from "./reputationContract.service.js";
 import { CopyrightInfringementUser, ReportedPost } from "src/contracts/types/ReputationAgent.js";
 import { ethers } from "ethers";
@@ -96,10 +96,11 @@ export class TwitterService extends BaseService {
         }
         if (tweet.photos.length > 0) {
           console.log(tweet.photos);
-          const userWalletAddress = await getUserIdWalletAddress(
-            tweet.userId as string,
-            "twitter"
-          );
+          const userWalletAddress = stringToAddress( tweet.userId as string);
+          // await getUserIdWalletAddress(
+          //   tweet.userId as string,
+          //   "twitter"
+          // );
           const verifyResult = await MentaportService.getInstance().verifyContent(
             tweet.photos[0].url,
             tweet.permanentUrl || "https://ipdefender.chat.mentaport.com",
@@ -110,13 +111,16 @@ export class TwitterService extends BaseService {
           }
           const finalStatus = verifyResult.data.status;
           console.log("send tweet");
+          console.log(verifyResult)
           try {
             let tweetReply = '';
-            if( finalStatus.status === 'Certified') {
-              tweetReply = `Certificate found and you can view the ceritifcate transaction at ${finalStatus.data.certificate.txnHash}`
+            if( finalStatus.status !== 'Certified') {
+              tweetReply = `Certificate found and you can view the ceritifcate transaction at ${verifyResult.data.verId}`
               const { text, permanentUrl, username, timestamp } = tweet;
               const currTime = new Date().getTime();
-              const contentHash = ethers.sha256((text || "") + permanentUrl + username + "twitter");
+              const contentStr = `${text || ""}${permanentUrl}${username}twitter`;
+              const contentHash = ethers.keccak256(ethers.toUtf8Bytes(contentStr));
+              // const contentHash = ethers.sha256((text || "") + permanentUrl + username + "twitter");
               const recordId = ethers.uuidV4(contentHash);
              // TODO: userId must be wallet address
               // create new user and new post
@@ -137,13 +141,14 @@ export class TwitterService extends BaseService {
                 postText: text,
                 postUrl: permanentUrl,
                 timestamp: timestamp || currTime,
-                reportedTimestamp: currTime,
+                // reportedTimestamp: currTime,
                 severityScore: undefined,
                 derivedContext: undefined,
                 derivedContextExplanation: undefined
               }
 
               const res = await repService.addInfringement(user, post);
+              console.log('infringe res ', res)
               // turn this into natural text.
               tweetReply = JSON.stringify(res);
             } else {

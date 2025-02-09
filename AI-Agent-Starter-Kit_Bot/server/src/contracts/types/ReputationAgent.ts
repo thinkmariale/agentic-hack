@@ -17,14 +17,14 @@ export interface CopyrightInfringementUser {
   reputationScore?: number;           // reputation score of the user, updated any time the reputation score is calculated
 }
 export interface ReportedPost {
-  recordId: string;                   // unique identifier for the record
+  recordId: string | number;                   // unique identifier for the record
   contentHash: string;                // used to check if the content has been reported before
   userId: string;                     // user id of the person who posted the content
   postText?: string;                  // text of the post
   postUrl?: string;                   // url of the post
   // contentS3Url?: string;
   timestamp: number;                  // timestamp of when the post was created
-  reportedTimestamp: number;          // timestamp of when the post was reported
+  // reportedTimestamp: number;          // timestamp of when the post was reported
   severityScore?: number;             // severity score of the offense
   derivedContext?: OffenseContext;    // context of the offense (plagiarism, misattribution, etc.)
   derivedContextExplanation?: string; // explanation of the context

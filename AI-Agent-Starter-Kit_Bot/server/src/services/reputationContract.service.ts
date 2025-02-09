@@ -17,9 +17,7 @@ export class ReputationContractService extends BaseService{
     const RPC_URL=process.env.RPC_URL ?? "http://127.0.0.1:8545/";
     const wallet = new Wallet(process.env.WALLET_KEY!);
     this.signer = wallet.connect(new ethers.JsonRpcProvider(RPC_URL));
-
     this.contract = ReputationAgent__factory.connect(this.signer);
-
   }
   public static getInstance(): ReputationContractService {
     if (!ReputationContractService.instance) {
@@ -66,6 +64,9 @@ export class ReputationContractService extends BaseService{
         return null;
       }
       console.log('[addInfringement]')
+      console.log(infringeUser)
+      console.log(post)
+      post.recordId = 1
       const existingPost = await this.getReportedPost(post.contentHash);
       if (existingPost) {
         // no need to recalculate the context. return the existing reputation score;
@@ -161,7 +162,7 @@ export class ReputationContractService extends BaseService{
       if (!this.contract) {
         return null;
       }
-      const result: ReportedPost = await this.contract.GetReputationScore(contentHash);
+      const result: ReportedPost = await this.contract.GetReportedPost(contentHash);
       console.log(result)
       if (result.contentHash == '') {
         return null
