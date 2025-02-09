@@ -4,6 +4,7 @@ import { ElizaService } from "./eliza.service.js";
 import {
   AnyType,
   getCollablandApiUrl,
+  getUserIdWalletAddress,
 } from "../utils.js";
 import { MentaportService, CertificateParams } from "./mentaport.service.js";
 
@@ -297,13 +298,18 @@ export class TelegramService extends BaseService {
             //   parse_mode: "HTML"
             // });
             await ctx.reply(`Verification result: ${JSON.stringify(verifyResult)}`);
+
+            const userWalletAddress = await getUserIdWalletAddress(
+              ctx.from.id.toString(),
+              "telegram"
+            );
             console.log("verifyResult", verifyResult)
             if (verifyResult.status && verifyResult.data.status.status === "Certified") {
               const repService = await ReputationContractService.getInstance();
               console.log("Image is certified");
               // TODO: userId must be wallet address
               const user: CopyrightInfringementUser = {
-                userId: ctx.from.id.toString(),
+                userId: userWalletAddress.account as string,
                 platform: 'telegram',
                 username: ctx.from.username as string,
                 offenseCount: 0,
@@ -316,7 +322,7 @@ export class TelegramService extends BaseService {
               const postToReport: ReportedPost = {
                 recordId,
                 contentHash: postHash,
-                userId: ctx.from.id.toString(),
+                userId: userWalletAddress.account as string,
                 postText: message.caption,
                 postUrl: `https://t.me/${ctx.from.username}/${message.message_id}`,
                 timestamp: new Date().getTime(),

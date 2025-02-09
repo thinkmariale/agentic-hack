@@ -3,6 +3,8 @@
 import { resolve } from "path";
 const __dirname = new URL(".", import.meta.url).pathname;
 import { config } from "dotenv";
+import axios, { AxiosError } from "axios";
+import { IAccountInfo } from "./types.js";
 config();
 
 export type AnyType = any;
@@ -103,6 +105,51 @@ export const getContentFormat = (contentType: string): string => {
 
   throw new Error(`Unsupported content type: ${contentType}`);
 };
+
+export const getUserIdWalletAddress = async(userId: string, platform: string) => {
+  try {
+    console.log("Getting account address for User ID:", userId);
+    if (!userId) {
+      throw new Error("No user id provided");
+    }
+    const v2ApiUrl = getCollablandApiUrl().replace("v1", "v2");
+    // This AccountKit API returns counterfactually calculated smart account addresses for a GitHub/Twitter user
+    const { data } = await axios.post<IAccountInfo>(
+      `${v2ApiUrl}/evm/calculateAccountAddress`,
+      {
+        platform,
+        userId: userId,
+      },
+      {
+        headers: {
+          "X-API-KEY": process.env.COLLABLAND_API_KEY!,
+        },
+      }
+    );
+    console.log(
+      "[Twitter Success] Account address for Twitter User ID:",
+      userId,
+      data
+    );
+    // We need base smart account addresses for Wow.XYZ
+    const accountAddress = data.evm.find(
+      (account) => account.chainId === 8453
+    )?.address;
+    return {
+      success: true,
+      account: accountAddress,
+    };
+  } catch (error) {
+    console.error("[Twitter Success] Error:", error);
+    if (error instanceof AxiosError) {
+      console.error("[Twitter Success] Response:", error.response?.data);
+    }
+    return {
+      success: false,
+      error: "Failed to fetch profile information",
+    };
+  }
+}
 
 // export const queryVerificationStatus= async(verId: string): Promise<any> => {
 //   try {

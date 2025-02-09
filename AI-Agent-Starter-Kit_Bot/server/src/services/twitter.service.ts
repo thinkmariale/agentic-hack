@@ -5,9 +5,7 @@ import { join, dirname } from "path";
 // import { CertificateParams, createCertificate, pollVerificationStatus, VerificationResult, verifyContent } from "../utils.js";
 
 import { MentaportService, CertificateParams } from "./mentaport.service.js";
-import { getCollablandApiUrl } from "../utils.js";
-import { IAccountInfo } from "../types.js";
-import axios, { AxiosError } from "axios";
+import { getUserIdWalletAddress } from "../utils.js";
 import { ReputationContractService } from "./reputationContract.service.js";
 import { CopyrightInfringementUser, ReportedPost } from "src/contracts/types/ReputationAgent.js";
 import { ethers } from "ethers";
@@ -98,8 +96,9 @@ export class TwitterService extends BaseService {
         }
         if (tweet.photos.length > 0) {
           console.log(tweet.photos);
-          const userWalletAddress = await this.getTwitterUserIdWalletAddress(
-            tweet.userId as string
+          const userWalletAddress = await getUserIdWalletAddress(
+            tweet.userId as string,
+            "twitter"
           );
           const verifyResult = await MentaportService.getInstance().verifyContent(
             tweet.photos[0].url,
@@ -115,14 +114,14 @@ export class TwitterService extends BaseService {
             let tweetReply = '';
             if( finalStatus.status === 'Certified') {
               tweetReply = `Certificate found and you can view the ceritifcate transaction at ${finalStatus.data.certificate.txnHash}`
-              const { text, permanentUrl, userId, username, timestamp } = tweet;
+              const { text, permanentUrl, username, timestamp } = tweet;
               const currTime = new Date().getTime();
               const contentHash = ethers.sha256((text || "") + permanentUrl + username + "twitter");
               const recordId = ethers.uuidV4(contentHash);
              // TODO: userId must be wallet address
               // create new user and new post
               const user: CopyrightInfringementUser = {
-                userId: userId!,
+                userId: userWalletAddress.account as string,
                 platform: "twitter",
                 username: username!,
                 offenseCount: 0,
@@ -133,7 +132,7 @@ export class TwitterService extends BaseService {
               }
               const post: ReportedPost = {
                 recordId: recordId,
-                userId: userId!,
+                userId: userWalletAddress.account as string,
                 contentHash: contentHash,
                 postText: text,
                 postUrl: permanentUrl,
@@ -231,48 +230,48 @@ export class TwitterService extends BaseService {
     return this.scraper;
   }
 
-  public async getTwitterUserIdWalletAddress(userId: string) {
-    try {
-      console.log("Getting account address for Twitter User ID:", userId);
-      if (!userId) {
-        throw new Error("No user id provided");
-      }
-      const v2ApiUrl = getCollablandApiUrl().replace("v1", "v2");
-      // This AccountKit API returns counterfactually calculated smart account addresses for a GitHub/Twitter user
-      const { data } = await axios.post<IAccountInfo>(
-        `${v2ApiUrl}/evm/calculateAccountAddress`,
-        {
-          platform: "twitter",
-          userId: userId,
-        },
-        {
-          headers: {
-            "X-API-KEY": process.env.COLLABLAND_API_KEY!,
-          },
-        }
-      );
-      console.log(
-        "[Twitter Success] Account address for Twitter User ID:",
-        userId,
-        data
-      );
-      // We need base smart account addresses for Wow.XYZ
-      const accountAddress = data.evm.find(
-        (account) => account.chainId === 8453
-      )?.address;
-      return {
-        success: true,
-        account: accountAddress,
-      };
-    } catch (error) {
-      console.error("[Twitter Success] Error:", error);
-      if (error instanceof AxiosError) {
-        console.error("[Twitter Success] Response:", error.response?.data);
-      }
-      return {
-        success: false,
-        error: "Failed to fetch profile information",
-      };
-    }
-  }
+  // public async getTwitterUserIdWalletAddress(userId: string) {
+  //   try {
+  //     console.log("Getting account address for Twitter User ID:", userId);
+  //     if (!userId) {
+  //       throw new Error("No user id provided");
+  //     }
+  //     const v2ApiUrl = getCollablandApiUrl().replace("v1", "v2");
+  //     // This AccountKit API returns counterfactually calculated smart account addresses for a GitHub/Twitter user
+  //     const { data } = await axios.post<IAccountInfo>(
+  //       `${v2ApiUrl}/evm/calculateAccountAddress`,
+  //       {
+  //         platform: "twitter",
+  //         userId: userId,
+  //       },
+  //       {
+  //         headers: {
+  //           "X-API-KEY": process.env.COLLABLAND_API_KEY!,
+  //         },
+  //       }
+  //     );
+  //     console.log(
+  //       "[Twitter Success] Account address for Twitter User ID:",
+  //       userId,
+  //       data
+  //     );
+  //     // We need base smart account addresses for Wow.XYZ
+  //     const accountAddress = data.evm.find(
+  //       (account) => account.chainId === 8453
+  //     )?.address;
+  //     return {
+  //       success: true,
+  //       account: accountAddress,
+  //     };
+  //   } catch (error) {
+  //     console.error("[Twitter Success] Error:", error);
+  //     if (error instanceof AxiosError) {
+  //       console.error("[Twitter Success] Response:", error.response?.data);
+  //     }
+  //     return {
+  //       success: false,
+  //       error: "Failed to fetch profile information",
+  //     };
+  //   }
+  // }
 }
