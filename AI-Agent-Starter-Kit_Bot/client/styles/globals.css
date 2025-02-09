@@ -4,8 +4,10 @@
 
 html,
 body {
-  @apply w-full h-full p-0 m-0 text-primary bg-secondary;
-  background: linear-gradient(-45deg,  #2c0175bc, #1ec5c5bf)
+  background: linear-gradient(-43deg,  #6988A7, #DFE3E9);
+  background-repeat: no-repeat;
+  background-color: #6988A7;
+
 }
 
 #__next, main {
@@ -29,5 +31,14 @@ body {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  h1 {
+    color: #2E6B9E;
+  }
+  h2 {
+    color: #0A1117;
+  }
+  p{
+    color: #132D42;
   }
 }

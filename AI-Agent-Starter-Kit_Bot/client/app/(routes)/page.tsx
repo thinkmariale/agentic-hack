@@ -15,18 +15,23 @@ export default function Home(): ReactElement {
       <div className="w-full mx-auto" style={{ 
         height: "100%",
         maxWidth: "1800px",
-        padding: "40px 20px"
+        padding: "10px 20px"
         }}>
           <div style={{
             width: "100%",
             color: "#fff",
             padding: "10px 20px",
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "left",
           }}>
+            <img src={"./img/defender-logo.png"} className="App-logo" alt="IP" style={{ width: "200px", height: "200px" }} />
+
             <div>
               <h1 style={{ fontSize: "32px", fontWeight: 600 }}>Welcome to Infringer Defender</h1>
               <p style={{ fontSize: "22px", fontWeight: 400 }}>Where your IP is controlled and your reputation is protected</p>
             </div>
-            <img src={"./img/defender-logo.png"} className="App-logo" alt="IP" style={{ width: "80px", height: "80px" }} />
           </div>
         <div style={{
           display: "flex",
