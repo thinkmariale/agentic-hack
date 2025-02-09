@@ -52,7 +52,15 @@ export const DataTable: React.FC<TableProps> = ({
             {!!title && (
                 <span style={{ fontWeight: 600, fontSize: 26 }}>{title}</span>
             )}
-            <div style={{ height: typeof height === "number" ? `${height}px` : height, width: "100%", flex: 1 }}>
+            <div style={{ 
+                height: typeof height === "number" ? `${height}px` : height, 
+                width: "100%", 
+                flex: 1, 
+                background: "#fff", 
+                borderRadius: "15px",
+                overflow: "hidden",
+                }}
+            >
                 <DataGrid
                     className="custom-data-grid"
                     rows={rowData}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { GetReputationsDocument, GetPostsDocument, execute } from '../../.graphclient';
 import { DataTable, TableColumn } from '@/components/ui/grid/grid';
+import { Card } from '@/components/ui/card';
 
 export function ReputationGraph() {
   const [isLoading, setIsLoading] = useState(false);
@@ -132,28 +133,35 @@ export function ReputationGraph() {
   ], [])
 
   return (
-    <div className="flex flex-col" style={{ width: "100%" }}>
-      <Button
-        type="button"
-        onClick={handleAddInfringerSubgraph}
-        disabled={isLoading}
-        className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
-      >
-        {isLoading ? "Connecting..." : "Add Infringer"}
-      </Button>
+    <Card style={{ 
+      marginTop: "15px",
+      padding: "20px",
+      flex: 1,
+      display: "flex",
+      }}>
+      <div className="flex flex-col" style={{ width: "100%", maxWidth: "70vw", marginTop: "15px" }}>
+        <Button
+          type="button"
+          onClick={handleAddInfringerSubgraph}
+          disabled={isLoading}
+          className="flex items-center gap-2 bg-[#24292e] hover:bg-[#1c2024] text-white rounded"
+        >
+          {isLoading ? "Connecting..." : "Add Infringer"}
+        </Button>
 
-      {mounted &&
-        <div style={{ 
-            padding: "30px 0 45px", 
-            display: "flex", 
-            flexDirection: "column", 
-            width: "100%", 
-            gap: "40px" 
-            }}
-          >
-          <DataTable title='Users' columns={reputationGraphColumnDefs} data={reputations} />
-          <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts} />
-        </div>}
-    </div>
+        {mounted &&
+          <div style={{ 
+              padding: "30px 0 45px", 
+              display: "flex", 
+              flexDirection: "column", 
+              width: "100%", 
+              gap: "40px" 
+              }}
+            >
+            <DataTable title='Users' columns={reputationGraphColumnDefs} data={reputations} />
+            <DataTable title='Reported Posts' columns={postsColumnDefs} data={posts} />
+          </div>}
+      </div>
+    </Card>
   );
 }

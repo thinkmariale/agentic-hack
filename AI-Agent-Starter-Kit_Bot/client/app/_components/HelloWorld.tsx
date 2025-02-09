@@ -43,13 +43,13 @@ export default function HelloWorld() {
           "Content-Type": "application/json",
         },
       });
-      console.log('response',response);
+      console.log('response', response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       setMessageResponse(data)
-     
+
       return data
     } catch (error) {
       console.error(error);
@@ -58,19 +58,19 @@ export default function HelloWorld() {
         message: "Failed to send message",
       }
     }
-   
+
   }, []);
 
   return (
-    <div className="flex flex-col items-center w-full space-y-6 p-4">
-      <Card className="w-full max-w-3xl">
+    <div className="flex flex-col items-center w-full space-y-6 p-4" style={{
+      borderRadius: "20px",
+      flex: 1,
+    }}>
+      <Card className="w-full max-w-4xl">
         <CardHeader>
-          <CardTitle>Welcome to Infringer Defender</CardTitle>
-          <CardDescription>
-           Where your IP is controlled and your reputation is protected
-          </CardDescription>
+          <CardTitle className="text-2xl">Chat with Our Agent</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 space">
           <ChatBox onSendMessage={onSendMessage} />
           {/* <Alert variant={isConfigured ? "default" : "destructive"}>
             <AlertCircle className="h-4 w-4" />
@@ -85,7 +85,11 @@ export default function HelloWorld() {
           {isConfigured && (
             <>
               {error ? (
-                <Alert variant="destructive">
+                <Alert variant="destructive" style={{
+                  borderRadius: "15px",
+                  border: "1px solid rgba(255, 39, 39, 0.6)",
+                  background: "rgba(255, 135, 135, 0.35)",
+                }}>
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>

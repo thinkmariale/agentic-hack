@@ -5,6 +5,7 @@
 html,
 body {
   @apply w-full h-full p-0 m-0 text-primary bg-secondary;
+  background: linear-gradient(-45deg,  #2c0175bc, #1ec5c5bf)
 }
 
 #__next, main {
@@ -22,5 +23,11 @@ body {
     @apply px-4 py-2 bg-secondary text-primary border border-accent 
            focus:outline-none focus:ring-1 focus:ring-primary 
            rounded-lg;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 }
