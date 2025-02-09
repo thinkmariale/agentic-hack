@@ -211,9 +211,7 @@ export class ReputationAlgorithmService {
             if (!responseText) {
                 throw new Error(`Error generating post context: No response from agent`);
             }
-
-            const context = JSON.parse(responseText) as PostContextResponse;
-            return context;
+            return responseText;
         } catch (error) {
             console.error("Error generating post context:", error);
             return null;

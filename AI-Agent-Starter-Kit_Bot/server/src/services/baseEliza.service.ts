@@ -88,15 +88,14 @@ export class BaseElizaService {
     return BaseElizaService.instance;
   }
 
-  public async processMessage(message: string): Promise<string | null> {
+  public async processMessage(message: string): Promise<any | null> {
     try {
       const response = await generateMessageResponse({
         runtime: this.runtime,
         context: message,
         modelClass: ModelClass.MEDIUM,
       });
-
-      return response.text;
+      return response;
     } catch (error) {
       console.error("Error processing message:", error);
       return null;
