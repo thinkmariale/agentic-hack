@@ -119,6 +119,7 @@ export default function HelloWorld() {
     <div className="flex flex-col items-center w-full space-y-8 p-4" style={{
       borderRadius: "20px",
       flex: 1,
+      minWidth: "480px",
     }}>
       <Card className="w-full max-w-4xl">
         <CardHeader>

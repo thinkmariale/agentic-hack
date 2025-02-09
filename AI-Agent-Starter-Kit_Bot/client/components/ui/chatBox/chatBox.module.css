@@ -48,7 +48,7 @@
   word-wrap: break-word;
   padding: 8px 12px;
   border-radius: 16px;
-  font-size: 14px;
+  font-size: 17px;
   line-height: 1.4;
   position: relative;
 }
@@ -57,6 +57,7 @@
   background-color: #007aff;
   color: white;
   align-self: flex-end;
+  align-items: flex-end;
 }
 
 .computerBubble {
