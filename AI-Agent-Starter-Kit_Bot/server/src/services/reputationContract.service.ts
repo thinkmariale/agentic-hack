@@ -6,14 +6,16 @@ import { AddInfringementReponse, OffenseContext } from "../contracts/types/Reput
 import { ReputationAlgorithmService } from "./reputationAlgorithm.service.js";
 // import { OffenseContextScore } from "../contracts/types/ReputationAlgorithm.js";
 // import {v4 as uuidv4} from 'uuid';
+import { BedrockService } from "./bedrock.service.js";
 
 export class ReputationContractService extends BaseService{
   private static instance: ReputationContractService;
   private signer: ethers.Wallet | null = null;
   private contract: ethers.Contract | null = null;
-
+  private bedrockService: BedrockService;
   private constructor() {
     super();
+    this.bedrockService = BedrockService.getInstance()
     // const RPC_URL = 'http://127.0.0.1:8545/';
     const RPC_URL=process.env.RPC_URL ?? "http://127.0.0.1:8545/";
     const wallet = new Wallet(process.env.WALLET_KEY!);
@@ -92,9 +94,11 @@ private  getId() {
       console.log(infringeUser)
       console.log(post)
       const dd = new Date().getTime();
-      let myuuid = this.getId();
+      const myuuid = this.getId();
       console.log(myuuid)
       post.recordId = myuuid.toString();
+      const resAws = await this.bedrockService.analyzeContent(post.postText as string)
+      console.log('aws res', resAws.output.message.content[0].text)
       const existingPost = await this.getReportedPost(post.contentHash);
       if (existingPost) {
         // no need to recalculate the context. return the existing reputation score;
